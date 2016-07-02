@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">GoogleMapKitKat</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="text_on">Stop</string>
+    <string name="text_off">Start</string>
+    <string name="eltime">経過時間</string>
+    <string name="chronometer_format">%s</string>
+    <string name="distance">移動距離</string>
+    <string name="latitude">経度</string>
+    <string name="longtitude">緯度</string>
+
+    <dimen name="activity_horizontal_margin">8dp</dimen>
+    <dimen name="activity_vertical_margin">8dp</dimen>
+</resources>
