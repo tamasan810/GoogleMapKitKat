@@ -31,6 +31,7 @@ import com.google.android.gms.location.FusedLocationProviderApi;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -70,6 +71,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private boolean mStart = false;
     private boolean mFirst = false;
     private boolean mStop = false;
+    private boolean mSetUp = true;
     private Chronometer mChronometer;
 
     @Override
@@ -132,7 +134,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     protected void onResume() {
-        Log.d("debug", "onRefuse");
+        Log.d("debug", "onResume");
         super.onResume();
 
         // GooglePlayサービスに接続
@@ -233,12 +235,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             return;
         }
 
-        // 調整
-        CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(new LatLng(location.getLatitude(), location.getLongitude())).zoom(17f)
-                .bearing(0).build();
-        // 地図の中心を取得した緯度、経度に動かす
-        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        if(mSetUp) {
+            // 調整
+            CameraPosition cameraPosition = new CameraPosition.Builder()
+                    .target(new LatLng(location.getLatitude(), location.getLongitude())).zoom(18f)
+                    .bearing(0).build();
+            // 地図の中心を取得した緯度、経度に動かす
+            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+            mSetUp = !mSetUp;
+        }
 
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
 
