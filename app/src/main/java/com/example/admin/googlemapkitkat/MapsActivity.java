@@ -1,14 +1,10 @@
 package com.example.admin.googlemapkitkat;
 
-import android.*;
 import android.Manifest;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
-import android.location.LocationManager;
-import android.net.wifi.WifiManager;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -31,15 +27,11 @@ import com.google.android.gms.location.FusedLocationProviderApi;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptor;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -71,7 +63,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private boolean mStart = false;
     private boolean mFirst = false;
     private boolean mStop = false;
-    private boolean mSetUp = true;
     private Chronometer mChronometer;
 
     @Override
@@ -227,16 +218,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mFusedLocationProviderApi.requestLocationUpdates(mGoogleApiClient, REQUEST, this);
     }
 
+    private boolean mSetUp = true;
+    private LatLng[] latLngs = new LatLng[2];
+    private int countMarker = 0;
+
     @Override
     public void onLocationChanged(Location location) {
         Log.d("debug", "onLocationChanged");
-        // mStopがtrueならば、何もしない
+        // カメラの調整はアプリ起動時のみ
         if (mStop) {
             return;
         }
-
+        // アプリを起動すると現在地に地図の中心を移動する
         if(mSetUp) {
-            // 調整
             CameraPosition cameraPosition = new CameraPosition.Builder()
                     .target(new LatLng(location.getLatitude(), location.getLongitude())).zoom(18f)
                     .bearing(0).build();
@@ -245,28 +239,57 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mSetUp = !mSetUp;
         }
 
-        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             return;
         }
+
         mMap.setMyLocationEnabled(true);
 
-        double lat = location.getLatitude(); // 経度
-        double lon = location.getLongitude(); // 緯度
+//        // 現在地の緯度経度
+//        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
 
         TextView latText = (TextView) findViewById(R.id.latText);
         TextView lonText = (TextView) findViewById(R.id.lonText);
-        latText.setText(String.valueOf(lat));
-        lonText.setText(String.valueOf(lon));
+//        latText.setText(String.valueOf(latLng.latitude));
+//        lonText.setText(String.valueOf(latLng.longitude));
+        latText.setText(String.valueOf(location.getLatitude()));
+        lonText.setText(String.valueOf(location.getLongitude()));
 
-        if (mStart) {
-            // 移動線を描画
-            drawTrace(latLng);
-            // 走行距離を計算
-            sumDistance();
-        }
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener(){
+            @Override
+            // 引数はタッチした個所の緯度経度
+            public void onMapClick(LatLng latLng){
+                // マーカーが2本以上立てられそうになったらクリア
+                if(countMarker == 2) {
+                    mMap.clear();
+                    countMarker = 0;
+                    latLngs[0] = null;
+                    latLngs[1] = null;
+                } else {
+                    latLngs[countMarker] = latLng;
+                    mMap.addMarker(new MarkerOptions().position(latLng));
+                    countMarker++;
+                    if(countMarker == 2) {
+                        PolylineOptions polylineOptions = new PolylineOptions();
+                        polylineOptions.add(latLngs[0]);
+                        polylineOptions.add(latLngs[1]);
+                        polylineOptions.color(Color.RED);
+                        polylineOptions.width(5);
+                        polylineOptions.geodesic(true);
+                        mMap.addPolyline(polylineOptions);
+                    }
+                }
+            }
+        });
+
+//        // スタートボタンが押されたら
+//        if (mStart) {
+//            // 移動線を描画
+//            drawTrace(latLng);
+//            // 走行距離を計算
+//            sumDistance();
+//        }
 
     }
 
