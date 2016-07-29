@@ -1,7 +1,10 @@
 package com.example.admin.googlemapkitkat;
 
 import android.Manifest;
+import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
@@ -13,7 +16,7 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
-import android.widget.Chronometer;
+import android.view.MenuItem;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,10 +36,8 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
-
-import java.util.ArrayList;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
         LocationListener, ConnectionCallbacks, OnConnectionFailedListener {
@@ -55,15 +56,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private FusedLocationProviderApi mFusedLocationProviderApi = LocationServices.FusedLocationApi;
     private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
-    // 位置情報を格納
-    private ArrayList<LatLng> mRunList = new ArrayList<LatLng>();
-    private long mStartTimeMillis;
-    private double mMeter = 0.0; // メートル
-    private double mElapsedTime = 0.0; // ミリ秒
+    private dataUtil d = new dataUtil();
+    /** ソース&命令表示用テキストフィールド */
+    private TextView textView1, textView2;
+    // ここでxmlファイルを参照しようとするとエラー
+//    private TextView textView1 = (TextView)findViewById(R.id.textView1);
+//    private TextView textView2 = (TextView)findViewById(R.id.textView2);
     private boolean mStart = false;
-    private boolean mFirst = false;
     private boolean mStop = false;
-    private Chronometer mChronometer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,22 +84,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // 非同期にマップを取得
         mapFragment.getMapAsync(this);
 
+        // START/STOPボタンを用意
         ToggleButton tb = (ToggleButton) findViewById(R.id.toggleButton);
-        tb.setChecked(false); // 起動時はボタンがオフの状態
+        // 起動時はボタンがオフ(START)の状態
+        tb.setChecked(false);
 
-        // ToggleのCheckが変更したタイミングで呼び出されるリスナー
+        textView1 = (TextView)findViewById(R.id.textView1);
+        textView2 = (TextView)findViewById(R.id.textView2);
+
+        // 起動直後のソースと命令(Task)を表示
+        // int main(void) {
+        // main関数開始
+        setSource();
+        setTask();
+        d.progCursor++;
+        d.taskCursor++;
+
+        // ToggleButtonのCheckが変更したタイミングで呼び出されるリスナー
         tb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                // トグルキーが変更された際に呼び出される
+                // startボタンが押されたとき
                 if (isChecked) {
-                    startChronometer();
                     mStart = true;
-                    mFirst = true;
                     mStop = false;
-                    mMeter = 0.0; // 移動距離をリセット
                 } else {
-                    stopChronometer();
                     mStop = true;
                     mStart = false;
                 }
@@ -107,20 +116,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
-    private void startChronometer() {
-        Log.d("debug", "startChronometer");
-        mChronometer = (Chronometer) findViewById(R.id.chronometer);
-        // 電源オン時からの経過時間の値をベースにする
-        mChronometer.setBase(SystemClock.elapsedRealtime());
-        mChronometer.start();
-        mStartTimeMillis = System.currentTimeMillis();
+    /**
+     * 処理中のソースコードを表示する
+     */
+    private void setSource() {
+        textView1.setText(d.getCode());
     }
 
-    private void stopChronometer() {
-        Log.d("debug", "stopChronometer");
-        mChronometer.stop();
-        // ミリ秒
-        mElapsedTime = SystemClock.elapsedRealtime() - mChronometer.getBase();
+    /**
+     * 命令(初期化、代入など)を表示する
+     */
+    private void setTask() {
+        textView2.setText(d.getTask().getText());
     }
 
     @Override
@@ -218,17 +225,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mFusedLocationProviderApi.requestLocationUpdates(mGoogleApiClient, REQUEST, this);
     }
 
+    /** カメラ調整用 */
     private boolean mSetUp = true;
-    private LatLng[] latLngs = new LatLng[2];
-    private int countMarker = 0;
+    /** メモリの一辺の長さ */
+    private final double side = 5.0 * Math.pow(10, -4);
+    /** メモリの個数 */
+    private final int numMemory = 6;
 
     @Override
-    public void onLocationChanged(Location location) {
+    public void onLocationChanged(final Location location) {
         Log.d("debug", "onLocationChanged");
-        // カメラの調整はアプリ起動時のみ
-        if (mStop) {
-            return;
-        }
+
         // アプリを起動すると現在地に地図の中心を移動する
         if(mSetUp) {
             CameraPosition cameraPosition = new CameraPosition.Builder()
@@ -236,104 +243,95 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     .bearing(0).build();
             // 地図の中心を取得した緯度、経度に動かす
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-            mSetUp = !mSetUp;
+            mSetUp = false;
         }
+
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             return;
         }
 
+        if(mStart) {
+            // TODO: ソースと命令の表示
+            // 移動や入力によって表示が変化する
+            setSource();
+            setTask();
+        }
+
+        // 現在地をマップの中心にさせるボタンを追加
         mMap.setMyLocationEnabled(true);
-
-//        // 現在地の緯度経度
-//        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-
-        TextView latText = (TextView) findViewById(R.id.latText);
-        TextView lonText = (TextView) findViewById(R.id.lonText);
-//        latText.setText(String.valueOf(latLng.latitude));
-//        lonText.setText(String.valueOf(latLng.longitude));
-        latText.setText(String.valueOf(location.getLatitude()));
-        lonText.setText(String.valueOf(location.getLongitude()));
 
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener(){
             @Override
-            // 引数はタッチした個所の緯度経度
-            public void onMapClick(LatLng latLng){
-                // マーカーが2本以上立てられそうになったらクリア
-                if(countMarker == 2) {
-                    mMap.clear();
-                    countMarker = 0;
-                    latLngs[0] = null;
-                    latLngs[1] = null;
-                } else {
-                    latLngs[countMarker] = latLng;
-                    mMap.addMarker(new MarkerOptions().position(latLng));
-                    countMarker++;
-                    if(countMarker == 2) {
-                        PolylineOptions polylineOptions = new PolylineOptions();
-                        polylineOptions.add(latLngs[0]);
-                        polylineOptions.add(latLngs[1]);
-                        polylineOptions.color(Color.RED);
-                        polylineOptions.width(5);
-                        polylineOptions.geodesic(true);
-                        mMap.addPolyline(polylineOptions);
+            // 引数はタップした個所の緯度経度
+            public void onMapClick(LatLng goalLatLng){
+                // マップをクリア
+                mMap.clear();
+
+                // タップした時の現在地の緯度経度
+                final LatLng startLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+
+                // TODO: 図形の描画をやってもらう
+                LatLng sLL0, sLL1, gLL0, gLL1;
+                LatLng[] latLngs = new LatLng[numMemory - 1];
+                double x = Math.abs(goalLatLng.longitude - startLatLng.longitude);
+                double y = Math.abs(goalLatLng.latitude - startLatLng.latitude);
+
+                // 縦方向が長い場合
+                if(y > x) {
+                    sLL0 = new LatLng(startLatLng.latitude, startLatLng.longitude - side / 2.0);
+                    sLL1 = new LatLng(startLatLng.latitude, startLatLng.longitude + side / 2.0);
+                    gLL0 = new LatLng(goalLatLng.latitude, goalLatLng.longitude + side / 2.0);
+                    gLL1 = new LatLng(goalLatLng.latitude, goalLatLng.longitude - side / 2.0);
+                    for(int i = 0; i < latLngs.length; i++) {
+                        latLngs[i] = new LatLng(startLatLng.latitude + side * (i + 1), startLatLng.longitude);
                     }
+
                 }
+                // 横方向に長い場合
+                else {
+                    sLL0 = new LatLng(startLatLng.latitude - side / 2.0, startLatLng.longitude);
+                    sLL1 = new LatLng(startLatLng.latitude + side / 2.0, startLatLng.longitude);
+                    gLL0 = new LatLng(goalLatLng.latitude + side / 2.0, goalLatLng.longitude);
+                    gLL1 = new LatLng(goalLatLng.latitude - side / 2.0, goalLatLng.longitude);
+                }
+
+                // 長方形を描画
+                PolygonOptions rectOptions = new PolygonOptions();
+                rectOptions.add(sLL0, sLL1, gLL0, gLL1);
+                rectOptions.strokeColor(Color.BLACK);
+                rectOptions.strokeWidth(3);
+                rectOptions.fillColor(0x700000ff);
+                mMap.addPolygon(rectOptions);
+
+                for(int i = 0; i < latLngs.length; i++) {
+                    PolylineOptions lineOptions = new PolylineOptions();
+                    lineOptions.add(new LatLng(latLngs[i].latitude, latLngs[i].longitude - side / 2.0));
+                    lineOptions.add(new LatLng(latLngs[i].latitude, latLngs[i].longitude + side / 2.0));
+                    lineOptions.width(3);
+                    mMap.addPolyline(lineOptions);
+                }
+
+
             }
         });
-
-//        // スタートボタンが押されたら
-//        if (mStart) {
-//            // 移動線を描画
-//            drawTrace(latLng);
-//            // 走行距離を計算
-//            sumDistance();
-//        }
-
     }
 
-    // 移動線を描画するメソッド
-    private void drawTrace(LatLng latLng) {
-        Log.d("debug", "drawTrace");
-        // 位置情報をリストに追加
-        mRunList.add(latLng);
-        if(mRunList.size() > 2) {
-            PolylineOptions polylineOptions = new PolylineOptions();
-            for(LatLng polyLatLng : mRunList) {
-                polylineOptions.add(polyLatLng);
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // 連携処理を実施
+        int itemId = item.getItemId();
+        try {
+            if (itemId == R.id.action_source) {
+                // ソースコードを全て表示
+//                Intent intent = new Intent(Intent.);
             }
-            polylineOptions.color(Color.BLUE);
-            polylineOptions.width(3);
-            polylineOptions.geodesic(false);
-            mMap.addPolyline(polylineOptions);
+        } catch (ActivityNotFoundException e) {
+            // アプリがなかった時のエラー処理
+            showToast(getString(R.string.lb_activity_not_found));
         }
-    }
-
-    // 移動距離を計算するメソッド
-    private void sumDistance() {
-        Log.d("debug", "sumDistance");
-        if(mRunList.size() < 2) {
-            return;
-        }
-        mMeter = 0;
-        // 結果を格納するための配列を生成
-        float[] results = new float[3];
-        int i = 1;
-
-        while(i < mRunList.size()) {
-            results[0] = 0;
-            // 引数に指定した配列に計算結果を格納する
-            // results[0]: 距離(メートル)
-            // results[1]: 始点から終点までの方位角
-            // results[2]: 終点から始点までの方位角
-            Location.distanceBetween(mRunList.get(i - 1).latitude, mRunList.get(i - 1).longitude,
-                    mRunList.get(i).latitude, mRunList.get(i).longitude, results);
-            mMeter += results[0];
-            i++;
-        }
-        TextView disText = (TextView) findViewById(R.id.disText);
-        disText.setText(String.format("%2f" + " ,", mMeter));
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -346,6 +344,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Do nothing
     }
 
+    /** エラーメッセージを表示 */
     private void showToast(String msg) {
         Toast error = Toast.makeText(this, msg, Toast.LENGTH_LONG);
         error.show();

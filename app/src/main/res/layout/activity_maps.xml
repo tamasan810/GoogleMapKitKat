@@ -22,72 +22,18 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toRightOf="@+id/toggleButton"
-        android:text="@string/eltime"
+        android:text="@string/source"
+        android:textSize="20sp"
         android:id="@+id/textView1"/>
-
-    <Chronometer
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/chronometer"
-        android:format="@string/chronometer_format"
-        android:layout_toRightOf="@+id/textView1"
-        android:layout_marginLeft="4dp"
-        android:textStyle="bold"
-        android:layout_alignBaseline="@+id/textView1"/>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:layout_toRightOf="@+id/chronometer"
-        android:text="@string/distance"
-        android:id="@+id/textView2"/>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@+id/textView2"
-        android:layout_marginLeft="4dp"
-        android:textStyle="bold"
-        android:text="0.00m"
-        android:id="@+id/disText"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toRightOf="@+id/toggleButton"
         android:layout_below="@+id/textView1"
-        android:text="@string/latitude"
-        android:id="@+id/textView4"/>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@+id/textView4"
-        android:layout_below="@+id/chronometer"
-        android:layout_marginLeft="4dp"
-        android:textStyle="bold"
-        android:text="hogehoge"
-        android:id="@+id/latText"/>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@+id/latText"
-        android:layout_marginLeft="10dp"
-        android:layout_below="@+id/textView2"
-        android:text="@string/longtitude"
-        android:id="@+id/textView5"/>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@+id/textView5"
-        android:layout_marginLeft="4dp"
-        android:layout_below="@+id/disText"
-        android:textStyle="bold"
-        android:text="hogehoge"
-        android:id="@+id/lonText"/>
+        android:text="@string/order"
+        android:textSize="20sp"
+        android:id="@+id/textView2"/>
 
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:map="http://schemas.android.com/apk/res-auto"
