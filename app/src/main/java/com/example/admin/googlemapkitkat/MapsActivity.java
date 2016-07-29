@@ -1,21 +1,22 @@
 package com.example.admin.googlemapkitkat;
 
 import android.Manifest;
-import android.app.Activity;
-import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
-import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.CompoundButton;
 import android.widget.TextView;
@@ -39,7 +40,10 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
+// FragmentActivity is included in ActionBarActivity
+// FragmentActivity, AppCompatActivity
+
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
         LocationListener, ConnectionCallbacks, OnConnectionFailedListener {
 
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
@@ -319,17 +323,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        Log.d("debug", "onCreateOptionsMenu");
+        final MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    /**
+     * 右上のメニューボタンから何かしらを選択した際に呼ばれるメソッド
+     */
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        Log.d("debug", "onOptionsItemSelected");
         // 連携処理を実施
         int itemId = item.getItemId();
-        try {
-            if (itemId == R.id.action_source) {
-                // ソースコードを全て表示
-//                Intent intent = new Intent(Intent.);
-            }
-        } catch (ActivityNotFoundException e) {
-            // アプリがなかった時のエラー処理
-            showToast(getString(R.string.lb_activity_not_found));
+        if (itemId == R.id.action_source) {
+            // SourceActivityを呼び出すIntentを生成
+            Intent intent = new Intent(this, SourceActivity.class);
+            // startActivityでソースコードを呼び出す
+            startActivity(intent);
         }
         return super.onOptionsItemSelected(item);
     }

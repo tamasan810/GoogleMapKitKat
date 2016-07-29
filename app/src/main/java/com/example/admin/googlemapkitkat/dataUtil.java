@@ -221,6 +221,14 @@ public class dataUtil {
 		return progList[progCursor];
 	}
 
+	/**
+	 *
+	 * @return ソースコード
+     */
+	public String getSource() {
+		return source;
+	}
+
 	//実験用
 	public static void main(String[] args) {
 		dataUtil d = new dataUtil();

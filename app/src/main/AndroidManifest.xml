@@ -40,6 +40,10 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".SourceActivity"
+            android:label="@string/title_activity_maps">
+        </activity>
     </application>
 
 </manifest>
