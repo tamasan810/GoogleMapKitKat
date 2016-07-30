@@ -9,16 +9,21 @@ import android.location.Location;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v4.view.LayoutInflaterCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -40,6 +45,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import java.util.Map;
+
 // FragmentActivity is included in ActionBarActivity
 // FragmentActivity, AppCompatActivity
 
@@ -60,14 +67,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private FusedLocationProviderApi mFusedLocationProviderApi = LocationServices.FusedLocationApi;
     private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
-    private dataUtil d = new dataUtil();
-    /** ソース&命令表示用テキストフィールド */
-    private TextView textView1, textView2;
-    // ここでxmlファイルを参照しようとするとエラー
-//    private TextView textView1 = (TextView)findViewById(R.id.textView1);
-//    private TextView textView2 = (TextView)findViewById(R.id.textView2);
     private boolean mStart = false;
     private boolean mStop = false;
+
+    /** ソース&命令表示用テキストフィールド */
+    TextView textView1, textView2;
+    // ここでxmlファイルを参照しようとするとエラーが発生!
+//    private TextView textView1 = (TextView)findViewById(R.id.textView1);
+//    private TextView textView2 = (TextView)findViewById(R.id.textView2);
+    dataUtil d = new dataUtil();
+    /** 現在地の緯度経度 */
+    LatLng nowLatLng;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,21 +98,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // 非同期にマップを取得
         mapFragment.getMapAsync(this);
 
-        // START/STOPボタンを用意
-        ToggleButton tb = (ToggleButton) findViewById(R.id.toggleButton);
-        // 起動時はボタンがオフ(START)の状態
-        tb.setChecked(false);
+        // 現在地を初期化
+        nowLatLng = new LatLng(0, 0);
 
         textView1 = (TextView)findViewById(R.id.textView1);
         textView2 = (TextView)findViewById(R.id.textView2);
 
-        // 起動直後のソースと命令(Task)を表示
-        // int main(void) {
-        // main関数開始
-        setSource();
-        setTask();
-        d.progCursor++;
-        d.taskCursor++;
+        // START/STOPボタンを用意
+        ToggleButton tb = (ToggleButton) findViewById(R.id.toggleButton);
+        // 起動時はボタンがオフ(START)の状態
+        tb.setChecked(false);
 
         // ToggleButtonのCheckが変更したタイミングで呼び出されるリスナー
         tb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -118,20 +123,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             }
         });
-    }
-
-    /**
-     * 処理中のソースコードを表示する
-     */
-    private void setSource() {
-        textView1.setText(d.getCode());
-    }
-
-    /**
-     * 命令(初期化、代入など)を表示する
-     */
-    private void setTask() {
-        textView2.setText(d.getTask().getText());
     }
 
     @Override
@@ -236,20 +227,22 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     /** メモリの個数 */
     private final int numMemory = 6;
 
+    // 一定の間隔で呼ばれる
     @Override
     public void onLocationChanged(final Location location) {
         Log.d("debug", "onLocationChanged");
+        // 現在地の緯度経度を更新
+        nowLatLng = new LatLng(location.getLatitude(), location.getLongitude());
 
         // アプリを起動すると現在地に地図の中心を移動する
         if(mSetUp) {
             CameraPosition cameraPosition = new CameraPosition.Builder()
-                    .target(new LatLng(location.getLatitude(), location.getLongitude())).zoom(18f)
+                    .target(nowLatLng).zoom(18f)
                     .bearing(0).build();
             // 地図の中心を取得した緯度、経度に動かす
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
             mSetUp = false;
         }
-
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -257,26 +250,26 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         if(mStart) {
-            // TODO: ソースと命令の表示
-            // 移動や入力によって表示が変化する
-            setSource();
-            setTask();
+            // onLocationChanged()内で読んでいるため、レスポンスが遅れる
+            action();
         }
 
         // 現在地をマップの中心にさせるボタンを追加
         mMap.setMyLocationEnabled(true);
 
+        // マップがタッチされると呼ばれるリスナー
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener(){
             @Override
-            // 引数はタップした個所の緯度経度
+            // 引数はタッチした個所の緯度経度
             public void onMapClick(LatLng goalLatLng){
-                // マップをクリア
+                // マップをクリア(線が消えていない)
                 mMap.clear();
 
-                // タップした時の現在地の緯度経度
-                final LatLng startLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                // タッチした時の現在地の緯度経度
+                final LatLng startLatLng = nowLatLng;
 
-                // TODO: 図形の描画をやってもらう
+                // TODO: 図形の描画を別メソッドでお願いします
+                // それぞれの変数に座標を持たせ、四角形を６つ作るイメージ(仮)
                 LatLng sLL0, sLL1, gLL0, gLL1;
                 LatLng[] latLngs = new LatLng[numMemory - 1];
                 double x = Math.abs(goalLatLng.longitude - startLatLng.longitude);
@@ -322,6 +315,175 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
+    /** 確認ダイアログ */
+    public AlertDialog myAlertDialog;
+
+    /**
+     * 行動メソッド
+     */
+    private void action() {
+        Log.d("debug", "action");
+        // TODO: commandごとにダイアログを表示させる条件が異なる、調整中。
+
+        // 既にダイアログが表示されていたら、return
+        if(myAlertDialog != null && myAlertDialog.isShowing()) return;
+
+        function(d); // displayなので条件は満たした
+
+        if(d.getTask().getCommand() != command.input) {
+            // ダイアログを表示してもプログラムは止まってくれない
+            // 多重に表示されてしまう危険性があるので注意！
+            AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+
+            // ダイアログの設定
+            alertDialog.setTitle("暫定的なダイアログ");
+            alertDialog.setMessage("次のソースと命令を表示します。\n" +
+                    "ボタンが押されている状態であれば勝手に表示される。");
+
+            alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    // "OK"ボタンが押されたときの処理
+                    // ダイアログを破棄
+                    dialogInterface.dismiss();
+                }
+            });
+
+            // "OK"以外でダイアログが閉じられないようにする
+            alertDialog.setCancelable(false);
+
+            myAlertDialog = alertDialog.create();
+            // ダイアログの表示
+            myAlertDialog.show();
+
+            // "OK"が押されて初めてソースと命令を表示させる
+            // TODO: ダイアログの表示よりもこの表示の方が早い、調整中。
+            setSource();
+            setTask();
+        }
+
+        // 次のタスクへ
+        d.next();
+    }
+
+    //このメソッドをアプリのメインクラスに実装
+    //各処理において、現在のタスクを出力
+    public void function(final dataUtil d) {
+        Log.d("debug", "function");
+        command command = d.getTask().getCommand();
+        switch (command) {
+            case display:
+                //TODO 出力処理
+                break;
+            case initialize:
+                d.initialize_c();
+                break;
+            case substitude:
+                d.substitude_c();
+                break;
+            case get:
+                d.get_c();
+                break;
+            case input:
+//                String num = inputNum();
+//                final String[] num = new String[1];
+
+                // 入力ダイアログの上に暫定的なダイアログが表示されてしまう
+                LayoutInflater inflater = LayoutInflater.from(this);
+                View view = inflater.inflate(R.layout.dialog, null);
+                final EditText editText = (EditText)findViewById(R.id.editText);
+                AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+                alertDialog.setTitle("入力受け付けダイアログ");
+                alertDialog.setMessage(d.getTask().getText());
+                alertDialog.setView(view);
+                alertDialog.setCancelable(false);
+
+                myAlertDialog = alertDialog.create();
+                myAlertDialog.show();
+
+                alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        // テキストを取得
+//                        num[0] = editText.getText().toString();
+                        d.input_c(editText.getText().toString());
+                        dialogInterface.dismiss();
+                    }
+                });
+
+                // ここにshowがあるとエラー発生
+//                alertDialog.setCancelable(false);
+//                alertDialog.show();
+
+                // ダイアログが表示される前に処理されるためヌルぽ発生
+//                d.input_c(num[0]);
+                break;
+            case move:
+                //TODO ここに移動の処理
+                break;
+            case output:
+                //TODO ここにコンソール出力処理
+                break;
+            case add:
+                d.add_c();
+                break;
+            case exit:
+                //TODO ここにコンソール出力処理
+                System.exit(0);
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * 入力受け付けメソッド
+     */
+    private String inputNum() {
+        Log.d("debug", "inputNum");
+        // 配列にしないと怒られてしまう!?
+        final String[] num = new String[1];
+
+        // 入力ダイアログの上に暫定的なダイアログが表示されてしまう
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View view = inflater.inflate(R.layout.dialog, null);
+        final EditText editText = (EditText)findViewById(R.id.editText);
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+        alertDialog.setTitle("入力受け付けダイアログ");
+        alertDialog.setMessage(d.getTask().getText());
+        alertDialog.setView(view);
+
+        alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                // テキストを取得
+                num[0] = editText.getText().toString();
+                dialogInterface.dismiss();
+            }
+        });
+
+        alertDialog.setCancelable(false);
+        alertDialog.show();
+        return num[0];
+    }
+
+    /**
+     * 処理中のソースコードを表示する
+     */
+    private void setSource() {
+        textView1.setText(d.getCode());
+    }
+
+    /**
+     * 命令(初期化、代入など)を表示する
+     */
+    private void setTask() {
+        textView2.setText(d.getTask().getText());
+    }
+
+    /**
+     * メニューボタンを表示するメソッド
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         Log.d("debug", "onCreateOptionsMenu");
@@ -341,6 +503,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (itemId == R.id.action_source) {
             // SourceActivityを呼び出すIntentを生成
             Intent intent = new Intent(this, SourceActivity.class);
+            // textというパラメータを設定
+            intent.putExtra("text", d.getCode());
             // startActivityでソースコードを呼び出す
             startActivity(intent);
         }

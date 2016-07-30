@@ -1,5 +1,7 @@
 package com.example.admin.googlemapkitkat;
 
+import android.util.Log;
+
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.HashMap;
@@ -39,10 +41,15 @@ public class dataUtil {
 				"return 0;", "}" };
 		this.progList = progList;
 
-		source = "void sum(int *sum,int b_)\n" + "*sum = *sum + b_\n;"
-				+ "}\n\n" + "int main(void){\n" + "int a = ?,b = ?;\n"
-				+ "printf(\"a = %d\",a);\n" + "printf(\"b = %d\",b);\n"
-				+ "return 0;\n" + "}";
+//		source = "void sum(int *sum,int b_)\n" + "*sum = *sum + b_\n;"
+//				+ "}\n\n" + "int main(void){\n" + "int a = ?,b = ?;\n"
+//				+ "printf(\"a = %d\",a);\n" + "printf(\"b = %d\",b);\n"
+//				+ "return 0;\n" + "}";
+
+		source = "void sum(int *sum,int b_){\n" + "\t*sum = *sum + b_;\n"
+				+ "}\n\n" + "int main(void){\n" + "\tint a = ?,b = ?;\n"
+				+ "\tprintf(\"a = %d\",a);\n" + "\tprintf(\"b = %d\",b);\n"
+				+ "\treturn 0;\n" + "}";
 	}
 
 	/**
@@ -157,13 +164,14 @@ public class dataUtil {
 
 	/**
 	 * 入力された文字(数値でなければいけない)をスタックに積む (型は検証されていない)
-	 * 
-	 * @param num
-	 *            : 入力された文字
 	 */
 	public void input_c(String num_s) {
+		Log.d("debug", "input_c");
 		int num = Integer.parseInt(num_s);
 		stack.push(num);
+		if(stack.isEmpty()) {
+			Log.d("debug", String.valueOf(num) + "is pushed!");
+		}
 	}
 
 	/**
@@ -229,58 +237,58 @@ public class dataUtil {
 		return source;
 	}
 
-	//実験用
-	public static void main(String[] args) {
-		dataUtil d = new dataUtil();
-		d.next();
-		do {
-			System.out.println(d.getTask().toString() + "\n" + d.getCode());
-			System.out.println("命令開始");
-			function(d);
-			System.out.println();
-		} while (d.next());
-
-	}
+//	//実験用
+//	public static void main(String[] args) {
+//		dataUtil d = new dataUtil();
+//		d.next();
+//		do {
+//			System.out.println(d.getTask().toString() + "\n" + d.getCode());
+//			System.out.println("命令開始");
+//			function(d);
+//			System.out.println();
+//		} while (d.next());
+//
+//	}
 
 	
-	//このメソッドをアプリのメインクラスに実装
-	//各処理において、現在のタスクを出力
-	public static void function(dataUtil d) {
-		command command = d.getTask().getCommand();
-		switch (command) {
-		case display:
-			//TODO 出力処理
-			break;
-		case initialize:
-			d.initialize_c();
-			break;
-		case substitude:
-			d.substitude_c();
-			break;
-		case get:
-			d.get_c();
-			break;
-		case input:
-			//TODO 値を入力してもらう
-			String num = Integer.toString((int)( Math.random() * 10));
-			d.input_c(num);
-			break;
-		case move:
-			//TODO ここに移動の処理
-			break;
-		case output:
-			//TODO ここにコンソール出力処理
-			break;
-		case add:
-			d.add_c();
-			break;
-		case exit:
-			//TODO ここにコンソール出力処理
-			System.exit(0);
-			break;
-		default:
-			break;
-		}
-	}
+//	//このメソッドをアプリのメインクラスに実装
+//	//各処理において、現在のタスクを出力
+//	public static void function(dataUtil d) {
+//		command command = d.getTask().getCommand();
+//		switch (command) {
+//		case display:
+//			//TODO 出力処理
+//			break;
+//		case initialize:
+//			d.initialize_c();
+//			break;
+//		case substitude:
+//			d.substitude_c();
+//			break;
+//		case get:
+//			d.get_c();
+//			break;
+//		case input:
+//			//TODO 値を入力してもらう
+//			String num = Integer.toString((int)( Math.random() * 10));
+//			d.input_c(num);
+//			break;
+//		case move:
+//			//TODO ここに移動の処理
+//			break;
+//		case output:
+//			//TODO ここにコンソール出力処理
+//			break;
+//		case add:
+//			d.add_c();
+//			break;
+//		case exit:
+//			//TODO ここにコンソール出力処理
+//			System.exit(0);
+//			break;
+//		default:
+//			break;
+//		}
+//	}
 
 }
