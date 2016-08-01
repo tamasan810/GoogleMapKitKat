@@ -1,7 +1,5 @@
 package com.example.admin.googlemapkitkat;
 
-// 2016/8/1/11:41
-
 import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
