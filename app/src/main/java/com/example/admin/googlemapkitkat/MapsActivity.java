@@ -43,6 +43,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+// テストメッセージ
+
 // FragmentActivity is included in ActionBarActivity
 // FragmentActivity, AppCompatActivity
 
