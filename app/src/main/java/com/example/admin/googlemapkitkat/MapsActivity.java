@@ -6,14 +6,12 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
-import android.support.v4.view.LayoutInflaterCompat;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -45,8 +43,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
-import java.util.Map;
-
 // FragmentActivity is included in ActionBarActivity
 // FragmentActivity, AppCompatActivity
 
@@ -60,7 +56,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             // ミリ秒単位で位置情報の更新間隔を設定
             .setInterval(INTERVAL)
             // setintervalはあくまで目安であり、状況によって間隔が変わる
-            // 正確な更新間隔も設定
             .setFastestInterval(FASTESTINTERVAL)
             // 高精度だがバッテリーを食う
             .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
@@ -72,12 +67,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     /** ソース&命令表示用テキストフィールド */
     TextView textView1, textView2;
-    // ここでxmlファイルを参照しようとするとエラーが発生!
-//    private TextView textView1 = (TextView)findViewById(R.id.textView1);
-//    private TextView textView2 = (TextView)findViewById(R.id.textView2);
-    dataUtil d = new dataUtil();
     /** 現在地の緯度経度 */
     LatLng nowLatLng;
+
+//    /** 効果音*/
+//    private SoundPool soundPool;
+//    private int sound;
+
+    dataUtil d = new dataUtil();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,8 +98,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // 現在地を初期化
         nowLatLng = new LatLng(0, 0);
 
+        // テキストビューを用意
         textView1 = (TextView)findViewById(R.id.textView1);
         textView2 = (TextView)findViewById(R.id.textView2);
+
+//        // SoundPoolのインスタンス作成
+//        soundPool = new SoundPool(1, AudioManager.STREAM_MUSIC, 0);
+//        // 効果音をロードしておく
+//        // 引数はContext、リソースID、優先度
+//        sound = soundPool.load(this,R.raw.mdecision, 1);
 
         // START/STOPボタンを用意
         ToggleButton tb = (ToggleButton) findViewById(R.id.toggleButton);
@@ -250,7 +254,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         if(mStart) {
-            // onLocationChanged()内で読んでいるため、レスポンスが遅れる
+            // onLocationChanged()内で呼んでいるため、レスポンスが遅れる
             action();
         }
 

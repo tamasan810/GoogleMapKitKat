@@ -13,6 +13,5 @@
     <string name="menu_call_source">ソースの表示</string>
     <string name="source_view">ここにソースをすべて表示する</string>
 
-    <dimen name="activity_horizontal_margin">8dp</dimen>
-    <dimen name="activity_vertical_margin">8dp</dimen>
+    <dimen name="activity_horizontal_margin">3dp</dimen>
 </resources>
