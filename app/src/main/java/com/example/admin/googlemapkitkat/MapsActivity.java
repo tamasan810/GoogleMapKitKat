@@ -1,6 +1,6 @@
 package com.example.admin.googlemapkitkat;
 
-// 2016/8/1/11:53
+// 2016/8/2/11:02
 
 import android.Manifest;
 import android.content.DialogInterface;
@@ -22,8 +22,10 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -68,13 +70,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private boolean mStop = false;
 
     /** ソース&命令表示用テキストフィールド */
-    TextView textView1, textView2;
+    private TextView textView1, textView2;
     /** 現在地の緯度経度 */
-    LatLng nowLatLng;
-
-//    /** 効果音*/
-//    private SoundPool soundPool;
-//    private int sound;
+    private LatLng nowLatLng;
+    /** プログレスバー */
+    private ProgressBar progressBar;
+    /** 効果音*/
+    private SoundPool soundPool;
+    private int sound;
 
     dataUtil d = new dataUtil();
 
@@ -83,6 +86,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Log.d("debug", "onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
+        // 自動スリープをしない
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         // GoogleApiClientを生成
         mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -104,11 +110,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         textView1 = (TextView)findViewById(R.id.textView1);
         textView2 = (TextView)findViewById(R.id.textView2);
 
-//        // SoundPoolのインスタンス作成
-//        soundPool = new SoundPool(1, AudioManager.STREAM_MUSIC, 0);
-//        // 効果音をロードしておく
-//        // 引数はContext、リソースID、優先度
-//        sound = soundPool.load(this,R.raw.mdecision, 1);
+        // プログレスバーを用意
+        progressBar = (ProgressBar)findViewById(R.id.progressBar);
+        // 最大値はtaskListの長さ
+        progressBar.setMax(d.taskList.length);
+
+        // SoundPoolのインスタンス作成
+        soundPool = new SoundPool(1, AudioManager.STREAM_MUSIC, 0);
+        // 効果音をロードしておく
+        // 引数はContext、リソースID、優先度
+        sound = soundPool.load(this,R.raw.mdecision, 1);
 
         // START/STOPボタンを用意
         ToggleButton tb = (ToggleButton) findViewById(R.id.toggleButton);
@@ -121,8 +132,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 // startボタンが押されたとき
                 if (isChecked) {
+                    LatLng goalLocation = new LatLng(nowLatLng.latitude + (0.002861023f),
+                            nowLatLng.longitude + (-3.0517578E-4));
+                    d.setParamList(nowLatLng,goalLocation);
+                    drawMemory();
                     mStart = true;
                     mStop = false;
+                    soundPool.play(sound, 0.5f, 0.5f, 0, 0, 1);
                 } else {
                     mStop = true;
                     mStart = false;
@@ -130,6 +146,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
     }
+
 
     @Override
     protected void onResume() {
@@ -228,10 +245,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     /** カメラ調整用 */
     private boolean mSetUp = true;
-    /** メモリの一辺の長さ */
-    private final double side = 5.0 * Math.pow(10, -4);
-    /** メモリの個数 */
-    private final int numMemory = 6;
 
     // 一定の間隔で呼ばれる
     @Override
@@ -262,63 +275,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // 現在地をマップの中心にさせるボタンを追加
         mMap.setMyLocationEnabled(true);
-
-        // マップがタッチされると呼ばれるリスナー
-        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener(){
-            @Override
-            // 引数はタッチした個所の緯度経度
-            public void onMapClick(LatLng goalLatLng){
-                // マップをクリア(線が消えていない)
-                mMap.clear();
-
-                // タッチした時の現在地の緯度経度
-                final LatLng startLatLng = nowLatLng;
-
-                // TODO: 図形の描画を別メソッドでお願いします
-                // それぞれの変数に座標を持たせ、四角形を６つ作るイメージ(仮)
-                LatLng sLL0, sLL1, gLL0, gLL1;
-                LatLng[] latLngs = new LatLng[numMemory - 1];
-                double x = Math.abs(goalLatLng.longitude - startLatLng.longitude);
-                double y = Math.abs(goalLatLng.latitude - startLatLng.latitude);
-
-                // 縦方向が長い場合
-                if(y > x) {
-                    sLL0 = new LatLng(startLatLng.latitude, startLatLng.longitude - side / 2.0);
-                    sLL1 = new LatLng(startLatLng.latitude, startLatLng.longitude + side / 2.0);
-                    gLL0 = new LatLng(goalLatLng.latitude, goalLatLng.longitude + side / 2.0);
-                    gLL1 = new LatLng(goalLatLng.latitude, goalLatLng.longitude - side / 2.0);
-                    for(int i = 0; i < latLngs.length; i++) {
-                        latLngs[i] = new LatLng(startLatLng.latitude + side * (i + 1), startLatLng.longitude);
-                    }
-
-                }
-                // 横方向に長い場合
-                else {
-                    sLL0 = new LatLng(startLatLng.latitude - side / 2.0, startLatLng.longitude);
-                    sLL1 = new LatLng(startLatLng.latitude + side / 2.0, startLatLng.longitude);
-                    gLL0 = new LatLng(goalLatLng.latitude + side / 2.0, goalLatLng.longitude);
-                    gLL1 = new LatLng(goalLatLng.latitude - side / 2.0, goalLatLng.longitude);
-                }
-
-                // 長方形を描画
-                PolygonOptions rectOptions = new PolygonOptions();
-                rectOptions.add(sLL0, sLL1, gLL0, gLL1);
-                rectOptions.strokeColor(Color.BLACK);
-                rectOptions.strokeWidth(3);
-                rectOptions.fillColor(0x700000ff);
-                mMap.addPolygon(rectOptions);
-
-                for(int i = 0; i < latLngs.length; i++) {
-                    PolylineOptions lineOptions = new PolylineOptions();
-                    lineOptions.add(new LatLng(latLngs[i].latitude, latLngs[i].longitude - side / 2.0));
-                    lineOptions.add(new LatLng(latLngs[i].latitude, latLngs[i].longitude + side / 2.0));
-                    lineOptions.width(3);
-                    mMap.addPolyline(lineOptions);
-                }
-
-
-            }
-        });
     }
 
     /** 確認ダイアログ */
@@ -334,8 +290,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // 既にダイアログが表示されていたら、return
         if(myAlertDialog != null && myAlertDialog.isShowing()) return;
 
-        function(d); // displayなので条件は満たした
+        function(d);
 
+        // タスクがinputであれば表示しない
         if(d.getTask().getCommand() != command.input) {
             // ダイアログを表示してもプログラムは止まってくれない
             // 多重に表示されてしまう危険性があるので注意！
@@ -362,15 +319,39 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             // ダイアログの表示
             myAlertDialog.show();
 
-            // "OK"が押されて初めてソースと命令を表示させる
-            // TODO: ダイアログの表示よりもこの表示の方が早い、調整中。
-            setSource();
-            setTask();
         }
+        // "OK"が押されて初めてソースと命令を表示させる
+        // TODO: ダイアログの表示よりもこの表示の方が早い、調整中。
+        setSource();
+        setTask();
+
+        progressBar.setProgress(d.taskCursor);
 
         // 次のタスクへ
         d.next();
     }
+
+
+    public void drawMemory(){
+        LatLng sLL0,sLL1,gLL0,gLL1,center;
+
+        for(String key:d.paramMap.keySet()){
+            param param = d.paramMap.get(key);
+            center = param.getLocate();
+            sLL0 = new LatLng(center.latitude-d.r,center.longitude-d.r);
+            sLL1 = new LatLng(center.latitude+d.r,center.longitude-d.r);
+            gLL0 = new LatLng(center.latitude+d.r,center.longitude+d.r);
+            gLL1 = new LatLng(center.latitude-d.r,center.longitude+d.r);
+
+            PolygonOptions rect = new PolygonOptions()
+                    .add(sLL0,sLL1,gLL0,gLL1)
+                    .strokeColor(Color.BLACK)
+                    .strokeWidth(4)
+                    .fillColor(0x700000ff);
+            mMap.addPolygon(rect);
+        }
+    }
+
 
     //このメソッドをアプリのメインクラスに実装
     //各処理において、現在のタスクを出力
@@ -391,38 +372,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 d.get_c();
                 break;
             case input:
-//                String num = inputNum();
-//                final String[] num = new String[1];
-
-                // 入力ダイアログの上に暫定的なダイアログが表示されてしまう
-                LayoutInflater inflater = LayoutInflater.from(this);
-                View view = inflater.inflate(R.layout.dialog, null);
-                final EditText editText = (EditText)findViewById(R.id.editText);
-                AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
-                alertDialog.setTitle("入力受け付けダイアログ");
-                alertDialog.setMessage(d.getTask().getText());
-                alertDialog.setView(view);
-                alertDialog.setCancelable(false);
-
-                myAlertDialog = alertDialog.create();
-                myAlertDialog.show();
-
-                alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        // テキストを取得
-//                        num[0] = editText.getText().toString();
-                        d.input_c(editText.getText().toString());
-                        dialogInterface.dismiss();
-                    }
-                });
-
-                // ここにshowがあるとエラー発生
-//                alertDialog.setCancelable(false);
-//                alertDialog.show();
-
-                // ダイアログが表示される前に処理されるためヌルぽ発生
-//                d.input_c(num[0]);
+                inputNum();
                 break;
             case move:
                 //TODO ここに移動の処理
@@ -445,32 +395,27 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     /**
      * 入力受け付けメソッド
      */
-    private String inputNum() {
-        Log.d("debug", "inputNum");
-        // 配列にしないと怒られてしまう!?
-        final String[] num = new String[1];
-
-        // 入力ダイアログの上に暫定的なダイアログが表示されてしまう
+    private void inputNum() {
         LayoutInflater inflater = LayoutInflater.from(this);
-        View view = inflater.inflate(R.layout.dialog, null);
-        final EditText editText = (EditText)findViewById(R.id.editText);
+        final View view = inflater.inflate(R.layout.dialog, null);
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
         alertDialog.setTitle("入力受け付けダイアログ");
         alertDialog.setMessage(d.getTask().getText());
         alertDialog.setView(view);
+        alertDialog.setCancelable(false);
 
         alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                // テキストを取得
-                num[0] = editText.getText().toString();
+                EditText editText = (EditText)view.findViewById(R.id.editText);
+                String strNum = editText.getText().toString();
+                d.input_c(strNum);
                 dialogInterface.dismiss();
             }
         });
 
-        alertDialog.setCancelable(false);
-        alertDialog.show();
-        return num[0];
+        myAlertDialog = alertDialog.create();
+        myAlertDialog.show();
     }
 
     /**

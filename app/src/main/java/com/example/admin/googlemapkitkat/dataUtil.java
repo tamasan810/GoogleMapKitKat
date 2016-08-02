@@ -9,6 +9,9 @@ import java.util.Stack;
 
 import static com.example.admin.googlemapkitkat.command.*;
 
+/**
+ * 描画前にsetParamListを必ず実行
+ */
 public class dataUtil {
 	final int none = Integer.MIN_VALUE;
 
@@ -31,8 +34,13 @@ public class dataUtil {
 	/** 計算,出力用のスタック */
 	Stack<Integer> stack;
 
+	/** メモリの一辺/2 */
+	float r;
+
+	/** メモリの数 */
+	int memNumber = 6;
+
 	dataUtil() {
-		setParamList();
 		setTaskList();
 		stack = new Stack<Integer>();
 		String[] progList = { "int main(void){", "int a = ?,b = ?;",
@@ -40,11 +48,6 @@ public class dataUtil {
 				"}", "printf(\"a = %d\",a);", "printf(\"b = %d\",b);",
 				"return 0;", "}" };
 		this.progList = progList;
-
-//		source = "void sum(int *sum,int b_)\n" + "*sum = *sum + b_\n;"
-//				+ "}\n\n" + "int main(void){\n" + "int a = ?,b = ?;\n"
-//				+ "printf(\"a = %d\",a);\n" + "printf(\"b = %d\",b);\n"
-//				+ "return 0;\n" + "}";
 
 		source = "void sum(int *sum,int b_){\n" + "\t*sum = *sum + b_;\n"
 				+ "}\n\n" + "int main(void){\n" + "\tint a = ?,b = ?;\n"
@@ -55,19 +58,32 @@ public class dataUtil {
 	/**
 	 * 変数リストを用意
 	 */
-	private void setParamList() {
+	public void setParamList(LatLng start,LatLng goal) {
 		/** TODO 座標指定 */
-		paramMap = new HashMap<String, param>();
-		paramMap.put("main", new param("main", param.NOPARAM, new LatLng(0, 0),
-				true));
-		paramMap.put("a", new param("a", param.NONE, new LatLng(0, 0), false));
-		paramMap.put("b", new param("b", param.NONE, new LatLng(0, 0), false));
 
-		paramMap.put("sum", new param("sum", param.NOPARAM, new LatLng(0, 0),
+		LatLng[]center = new LatLng[memNumber];
+
+		float imargin = (float)(goal.latitude - start.latitude)/6f;//メモリの緯度の間隔
+		float kmargin = (float)(goal.longitude - start.longitude)/6f;//メモリの経度の間隔
+
+		this.r = kmargin/2f;
+
+		for(int i = 0;i < memNumber;i++){
+			center[i] = new LatLng(start.latitude + imargin*i,start.longitude + kmargin*i );
+		}
+
+
+		paramMap = new HashMap<String, param>();
+		paramMap.put("main", new param("main", param.NOPARAM, center[0],
+				true));
+		paramMap.put("a", new param("a", param.NONE, center[1], false));
+		paramMap.put("b", new param("b", param.NONE, center[2], false));
+
+		paramMap.put("sum", new param("sum", param.NOPARAM, center[3],
 				false));
-		paramMap.put("*sum", new param("*sum", param.NONE, new LatLng(0, 0),
+		paramMap.put("*sum", new param("*sum", param.NONE, center[4],
 				false));
-		paramMap.put("b_", new param("b_", param.NONE, new LatLng(0, 0), false));
+		paramMap.put("b_", new param("b_", param.NONE, center[5], false));
 	}
 
 	/**
@@ -169,9 +185,6 @@ public class dataUtil {
 		Log.d("debug", "input_c");
 		int num = Integer.parseInt(num_s);
 		stack.push(num);
-		if(stack.isEmpty()) {
-			Log.d("debug", String.valueOf(num) + "is pushed!");
-		}
 	}
 
 	/**
@@ -192,7 +205,7 @@ public class dataUtil {
 
 	/**
 	 * 出力する（output命令）文字列を返す
-	 * 
+	 *
 	 * @return　出力用の文字列
 	 */
 	public String getOutputStr() {
@@ -204,7 +217,7 @@ public class dataUtil {
 
 	/**
 	 * 現在向かうべき場所を返す
-	 * 
+	 *
 	 * @return
 	 */
 	public LatLng getLocate() {
@@ -213,7 +226,7 @@ public class dataUtil {
 
 	/**
 	 * 現在のタスク取得
-	 * 
+	 *
 	 * @return　現在のタスク
 	 */
 	public task getTask() {
@@ -222,7 +235,7 @@ public class dataUtil {
 
 	/**
 	 * 現在のコード取得
-	 * 
+	 *
 	 * @return　現在のコード
 	 */
 	public String getCode() {
@@ -232,63 +245,9 @@ public class dataUtil {
 	/**
 	 *
 	 * @return ソースコード
-     */
+	 */
 	public String getSource() {
 		return source;
 	}
-
-//	//実験用
-//	public static void main(String[] args) {
-//		dataUtil d = new dataUtil();
-//		d.next();
-//		do {
-//			System.out.println(d.getTask().toString() + "\n" + d.getCode());
-//			System.out.println("命令開始");
-//			function(d);
-//			System.out.println();
-//		} while (d.next());
-//
-//	}
-
-	
-//	//このメソッドをアプリのメインクラスに実装
-//	//各処理において、現在のタスクを出力
-//	public static void function(dataUtil d) {
-//		command command = d.getTask().getCommand();
-//		switch (command) {
-//		case display:
-//			//TODO 出力処理
-//			break;
-//		case initialize:
-//			d.initialize_c();
-//			break;
-//		case substitude:
-//			d.substitude_c();
-//			break;
-//		case get:
-//			d.get_c();
-//			break;
-//		case input:
-//			//TODO 値を入力してもらう
-//			String num = Integer.toString((int)( Math.random() * 10));
-//			d.input_c(num);
-//			break;
-//		case move:
-//			//TODO ここに移動の処理
-//			break;
-//		case output:
-//			//TODO ここにコンソール出力処理
-//			break;
-//		case add:
-//			d.add_c();
-//			break;
-//		case exit:
-//			//TODO ここにコンソール出力処理
-//			System.exit(0);
-//			break;
-//		default:
-//			break;
-//		}
-//	}
 
 }
