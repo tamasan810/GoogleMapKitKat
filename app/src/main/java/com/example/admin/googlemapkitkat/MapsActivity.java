@@ -23,6 +23,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -44,8 +45,8 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolygonOptions;
-import com.google.android.gms.maps.model.PolylineOptions;
 
 // FragmentActivity is included in ActionBarActivity
 // FragmentActivity, AppCompatActivity
@@ -53,6 +54,10 @@ import com.google.android.gms.maps.model.PolylineOptions;
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
         LocationListener, ConnectionCallbacks, OnConnectionFailedListener {
 
+    /** 緯度の差 */
+    private static final double latDiff = 0.002861023f;
+    /** 経度の差 */
+    private static final double lonDiff = -3.0517578E-4;
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private static final int INTERVAL = 500;
     private static final int FASTESTINTERVAL = 16;
@@ -132,8 +137,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 // startボタンが押されたとき
                 if (isChecked) {
-                    LatLng goalLocation = new LatLng(nowLatLng.latitude + (0.002861023f),
-                            nowLatLng.longitude + (-3.0517578E-4));
+                    LatLng goalLocation = new LatLng(nowLatLng.latitude + latDiff,
+                            nowLatLng.longitude + lonDiff);
                     d.setParamList(nowLatLng,goalLocation);
                     drawMemory();
                     mStart = true;
@@ -145,7 +150,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             }
         });
+
+        // NEXtボタンを用意
+        Button button = (Button) findViewById(R.id.nextButton);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(mStart) action();
+            }
+        });
     }
+
 
 
     @Override
@@ -268,40 +283,34 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             return;
         }
 
-        if(mStart) {
-            // onLocationChanged()内で呼んでいるため、レスポンスが遅れる
-            action();
-        }
+//        if(mStart) {
+//            // onLocationChanged()内で呼んでいるため、レスポンスが遅れる
+//            action();
+//        }
 
         // 現在地をマップの中心にさせるボタンを追加
         mMap.setMyLocationEnabled(true);
     }
 
-    /** 確認ダイアログ */
-    public AlertDialog myAlertDialog;
 
     /**
      * 行動メソッド
+     * NEXtボタンを押すと呼ばれる
      */
     private void action() {
         Log.d("debug", "action");
         // TODO: commandごとにダイアログを表示させる条件が異なる、調整中。
 
-        // 既にダイアログが表示されていたら、return
-        if(myAlertDialog != null && myAlertDialog.isShowing()) return;
 
         function(d);
 
         // タスクがinputであれば表示しない
         if(d.getTask().getCommand() != command.input) {
-            // ダイアログを表示してもプログラムは止まってくれない
-            // 多重に表示されてしまう危険性があるので注意！
             AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
 
             // ダイアログの設定
             alertDialog.setTitle("暫定的なダイアログ");
-            alertDialog.setMessage("次のソースと命令を表示します。\n" +
-                    "ボタンが押されている状態であれば勝手に表示される。");
+            alertDialog.setMessage("ここに説明を追加");
 
             alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                 @Override
@@ -315,13 +324,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             // "OK"以外でダイアログが閉じられないようにする
             alertDialog.setCancelable(false);
 
-            myAlertDialog = alertDialog.create();
-            // ダイアログの表示
-            myAlertDialog.show();
+//            // ダイアログの表示
+            alertDialog.show();
 
         }
-        // "OK"が押されて初めてソースと命令を表示させる
-        // TODO: ダイアログの表示よりもこの表示の方が早い、調整中。
+        // TODO: ダイアログの表示の際にTextViewをハイライトできないか検討中
         setSource();
         setTask();
 
@@ -330,7 +337,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // 次のタスクへ
         d.next();
     }
-
 
     public void drawMemory(){
         LatLng sLL0,sLL1,gLL0,gLL1,center;
@@ -347,7 +353,26 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .add(sLL0,sLL1,gLL0,gLL1)
                     .strokeColor(Color.BLACK)
                     .strokeWidth(4)
-                    .fillColor(0x700000ff);
+                    ;
+            //出現している
+            if(param.isAppeared == true){
+                //次の目的地なら
+                if(key.equals(d.getTask().getTarget()))
+                    rect.fillColor(0x60ff0000);
+                else rect.fillColor(0x600000ff);
+                MarkerOptions marker = new MarkerOptions()
+                        .position(param.getLocate());
+                if(param.getNumber() == param.NONE)
+                    marker.title(key);
+                else if(param.getNumber() == param.NOPARAM)
+                    marker.title(key + "(関数)");
+                else marker.snippet(Integer.toString(param.getNumber()));
+                mMap.addMarker(marker);
+            }
+            //出現していない
+            else{
+                rect .fillColor(0x60ffffff);
+            }
             mMap.addPolygon(rect);
         }
     }
@@ -414,8 +439,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-        myAlertDialog = alertDialog.create();
-        myAlertDialog.show();
+//        myAlertDialog = alertDialog.create();
+//        myAlertDialog.show();
+        alertDialog.show();
     }
 
     /**

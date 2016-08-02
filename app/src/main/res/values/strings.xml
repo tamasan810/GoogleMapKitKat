@@ -12,6 +12,7 @@
     <string name="order">命令</string>
     <string name="menu_call_source">ソースの表示</string>
     <string name="source_view">ここにソースをすべて表示する</string>
+    <string name="next_button">NEXT</string>
 
     <dimen name="activity_horizontal_margin">3dp</dimen>
 </resources>

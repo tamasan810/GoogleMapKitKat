@@ -35,7 +35,7 @@ public class dataUtil {
 	Stack<Integer> stack;
 
 	/** メモリの一辺/2 */
-	float r;
+	double r;
 
 	/** メモリの数 */
 	int memNumber = 6;
@@ -63,10 +63,11 @@ public class dataUtil {
 
 		LatLng[]center = new LatLng[memNumber];
 
-		float imargin = (float)(goal.latitude - start.latitude)/6f;//メモリの緯度の間隔
-		float kmargin = (float)(goal.longitude - start.longitude)/6f;//メモリの経度の間隔
+		double imargin = (goal.latitude - start.latitude)/memNumber;//メモリの緯度の間隔
+		double kmargin = (goal.longitude - start.longitude)/memNumber;//メモリの経度の間隔
 
-		this.r = kmargin/2f;
+		this.r = imargin > kmargin ? imargin*0.5f : kmargin*0.5f;
+		this.r = r < 0?-r:r;
 
 		for(int i = 0;i < memNumber;i++){
 			center[i] = new LatLng(start.latitude + imargin*i,start.longitude + kmargin*i );
@@ -185,6 +186,9 @@ public class dataUtil {
 		Log.d("debug", "input_c");
 		int num = Integer.parseInt(num_s);
 		stack.push(num);
+		if(stack.isEmpty()) {
+			Log.d("debug", String.valueOf(num) + "is pushed!");
+		}
 	}
 
 	/**
@@ -223,6 +227,19 @@ public class dataUtil {
 	public LatLng getLocate() {
 		return paramMap.get(getTask().getTarget()).getLocate();
 	}
+
+	public boolean isCorrectLocation(LatLng currentLocate){
+		LatLng correctLocate = getLocate();
+		if(currentLocate.latitude <= correctLocate.latitude + r &&
+				currentLocate.latitude >= correctLocate.latitude - r &&
+				currentLocate.longitude <= correctLocate.longitude + r &&
+				currentLocate.longitude >= correctLocate.longitude - r
+				){
+			return true;
+		}
+		return false;
+	}
+
 
 	/**
 	 * 現在のタスク取得
