@@ -47,6 +47,7 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.vision.text.Text;
 
 // FragmentActivity is included in ActionBarActivity
 // FragmentActivity, AppCompatActivity
@@ -74,8 +75,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private boolean mStart = false;
     private boolean mStop = false;
 
-    /** ソース&命令表示用テキストフィールド */
+    /** ソース&命令表示用テキストビュー */
     private TextView textView1, textView2;
+    /** 進行度用テキストビュー */
+    private TextView barTV;
+    /** スタック用テキストビュー */
+    static TextView stackView0, stackView1;
     /** 現在地の緯度経度 */
     private LatLng nowLatLng;
     /** プログレスバー */
@@ -112,8 +117,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         nowLatLng = new LatLng(0, 0);
 
         // テキストビューを用意
-        textView1 = (TextView)findViewById(R.id.textView1);
-        textView2 = (TextView)findViewById(R.id.textView2);
+        textView1 = (TextView) findViewById(R.id.textView1);
+        textView2 = (TextView) findViewById(R.id.textView2);
+        barTV = (TextView) findViewById(R.id.barTextView);
+        barTV.setText("0 /" + d.taskList.length);
+        stackView0 = (TextView) findViewById(R.id.stack0);
+        stackView1 = (TextView) findViewById(R.id.stack1);
 
         // プログレスバーを用意
         progressBar = (ProgressBar)findViewById(R.id.progressBar);
@@ -140,7 +149,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     LatLng goalLocation = new LatLng(nowLatLng.latitude + latDiff,
                             nowLatLng.longitude + lonDiff);
                     d.setParamList(nowLatLng,goalLocation);
-                    drawMemory();
+                    upDate();
                     mStart = true;
                     mStop = false;
                     soundPool.play(sound, 0.5f, 0.5f, 0, 0, 1);
@@ -151,7 +160,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-        // NEXtボタンを用意
+        // NEXTボタンを用意
         Button button = (Button) findViewById(R.id.nextButton);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -160,8 +169,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
     }
-
-
 
     @Override
     protected void onResume() {
@@ -271,8 +278,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // アプリを起動すると現在地に地図の中心を移動する
         if(mSetUp) {
             CameraPosition cameraPosition = new CameraPosition.Builder()
-                    .target(nowLatLng).zoom(18f)
-                    .bearing(0).build();
+                    .target(nowLatLng).zoom(17f).bearing(0).build();
             // 地図の中心を取得した緯度、経度に動かす
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
             mSetUp = false;
@@ -283,62 +289,50 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             return;
         }
 
-//        if(mStart) {
-//            // onLocationChanged()内で呼んでいるため、レスポンスが遅れる
-//            action();
-//        }
-
         // 現在地をマップの中心にさせるボタンを追加
         mMap.setMyLocationEnabled(true);
     }
 
-
     /**
      * 行動メソッド
-     * NEXtボタンを押すと呼ばれる
+     * NEXTボタンを押すと呼ばれる
      */
     private void action() {
         Log.d("debug", "action");
-        // TODO: commandごとにダイアログを表示させる条件が異なる、調整中。
-
-
-        function(d);
-
-        // タスクがinputであれば表示しない
-        if(d.getTask().getCommand() != command.input) {
-            AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
-
-            // ダイアログの設定
-            alertDialog.setTitle("暫定的なダイアログ");
-            alertDialog.setMessage("ここに説明を追加");
-
-            alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    // "OK"ボタンが押されたときの処理
-                    // ダイアログを破棄
-                    dialogInterface.dismiss();
-                }
-            });
-
-            // "OK"以外でダイアログが閉じられないようにする
-            alertDialog.setCancelable(false);
-
-//            // ダイアログの表示
-            alertDialog.show();
-
+        if(function(d)){
+            upDate();
+            Log.d("debug","現在地" + nowLatLng.toString());
         }
-        // TODO: ダイアログの表示の際にTextViewをハイライトできないか検討中
+    }
+
+
+    /**
+     * 表示のアップデート
+     */
+    private void upDate() {
         setSource();
         setTask();
+        drawMemory();
+        progressBar.setProgress(d.taskCursor + 1);
+        barTV.setText(d.taskCursor + 1 + "/" + d.taskList.length);
+    }
 
-        progressBar.setProgress(d.taskCursor);
+    /**
+     * 処理中のソースコードを表示する
+     */
+    private void setSource() {
+        textView1.setText(d.getCode());
+    }
 
-        // 次のタスクへ
-        d.next();
+    /**
+     * 命令(初期化、代入など)を表示する
+     */
+    private void setTask() {
+        textView2.setText(d.getTask().getText());
     }
 
     public void drawMemory(){
+        mMap.clear();
         LatLng sLL0,sLL1,gLL0,gLL1,center;
 
         for(String key:d.paramMap.keySet()){
@@ -351,22 +345,28 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             PolygonOptions rect = new PolygonOptions()
                     .add(sLL0,sLL1,gLL0,gLL1)
-                    .strokeColor(Color.BLACK)
-                    .strokeWidth(4)
-                    ;
+                    .strokeWidth(4);
+
             //出現している
             if(param.isAppeared == true){
                 //次の目的地なら
                 if(key.equals(d.getTask().getTarget()))
                     rect.fillColor(0x60ff0000);
-                else rect.fillColor(0x600000ff);
+                else
+                    rect.fillColor(0x600000ff);
                 MarkerOptions marker = new MarkerOptions()
                         .position(param.getLocate());
-                if(param.getNumber() == param.NONE)
-                    marker.title(key);
-                else if(param.getNumber() == param.NOPARAM)
-                    marker.title(key + "(関数)");
-                else marker.snippet(Integer.toString(param.getNumber()));
+                if(param.getPointer() != "")
+                    marker.title(key).snippet(param.getPointer() + " のアドレス");
+                else {
+                    if (param.getNumber() == param.NONE)
+                        marker.title(key);
+                    else if (param.getNumber() == param.NOPARAM)
+                        marker.title(key + "(関数)");
+                    else
+                        marker.title(key)
+                                .snippet(Integer.toString(param.getNumber()));
+                }
                 mMap.addMarker(marker);
             }
             //出現していない
@@ -379,8 +379,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     //このメソッドをアプリのメインクラスに実装
-    //各処理において、現在のタスクを出力
-    public void function(final dataUtil d) {
+//各処理において、現在のタスクを出力
+    public boolean function(final dataUtil d) {
         Log.d("debug", "function");
         command command = d.getTask().getCommand();
         switch (command) {
@@ -400,22 +400,47 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 inputNum();
                 break;
             case move:
-                //TODO ここに移動の処理
+                if(!d.isCorrectLocation(nowLatLng))
+                    return false;
                 break;
             case output:
                 //TODO ここにコンソール出力処理
+                AlertDialog.Builder alertDialog0 = new AlertDialog.Builder(this);
+                alertDialog0.setTitle("output");
+                alertDialog0.setMessage(d.getOutputStr());
+                alertDialog0.setCancelable(false);
+                alertDialog0.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                    }
+                });
+                alertDialog0.show();
                 break;
             case add:
                 d.add_c();
                 break;
             case exit:
                 //TODO ここにコンソール出力処理
-                System.exit(0);
+                AlertDialog.Builder alertDialog1 = new AlertDialog.Builder(this);
+                alertDialog1.setTitle("output");
+                alertDialog1.setMessage(d.getOutputStr());
+                alertDialog1.setCancelable(false);
+                alertDialog1.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                    }
+                });
+                alertDialog1.show();
                 break;
             default:
                 break;
         }
+        d.next();
+        return true;
     }
+
 
     /**
      * 入力受け付けメソッド
@@ -439,23 +464,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-//        myAlertDialog = alertDialog.create();
-//        myAlertDialog.show();
         alertDialog.show();
-    }
-
-    /**
-     * 処理中のソースコードを表示する
-     */
-    private void setSource() {
-        textView1.setText(d.getCode());
-    }
-
-    /**
-     * 命令(初期化、代入など)を表示する
-     */
-    private void setTask() {
-        textView2.setText(d.getTask().getText());
     }
 
     /**

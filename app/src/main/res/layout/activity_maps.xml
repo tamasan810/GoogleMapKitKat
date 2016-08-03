@@ -49,6 +49,19 @@
         android:text="@string/next_button"
         android:layout_below="@+id/toggleButton"/>
 
+
+    <TextView
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:text="@string/stack"
+        android:textSize="30dp"
+        android:gravity="center_horizontal"
+        android:id="@+id/stack0"
+        android:background="@drawable/frame_style"
+        android:layout_above="@+id/imageView"
+        android:layout_alignParentEnd="true"
+        android:visibility="invisible"/>
+
     <ImageView
         android:layout_width="30dp"
         android:layout_height="30dp"
@@ -67,7 +80,27 @@
         android:layout_alignParentEnd="true"
         android:layout_marginRight="10dp"/>
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/bar"
+        android:textSize="10dp"
+        android:id="@+id/barTextView"
+        android:textColor="#FF0000"
+        android:layout_below="@+id/progressBar"
+        android:layout_alignEnd="@+id/progressBar" />
 
+    <TextView
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:text="@string/stack"
+        android:textSize="30dp"
+        android:gravity="center_horizontal"
+        android:id="@+id/stack1"
+        android:background="@drawable/frame_style"
+        android:layout_above="@+id/stack0"
+        android:layout_alignParentEnd="true"
+        android:visibility="invisible"/>
 
 </RelativeLayout>
 
