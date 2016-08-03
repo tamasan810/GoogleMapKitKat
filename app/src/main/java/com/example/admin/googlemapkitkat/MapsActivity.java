@@ -3,6 +3,8 @@ package com.example.admin.googlemapkitkat;
 // 2016/8/2/11:02
 
 import android.Manifest;
+import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -55,10 +57,6 @@ import com.google.android.gms.vision.text.Text;
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
         LocationListener, ConnectionCallbacks, OnConnectionFailedListener {
 
-    /** 緯度の差 */
-    private static final double latDiff = 0.002861023f;
-    /** 経度の差 */
-    private static final double lonDiff = -3.0517578E-4;
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private static final int INTERVAL = 500;
     private static final int FASTESTINTERVAL = 16;
@@ -74,13 +72,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleApiClient mGoogleApiClient;
     private boolean mStart = false;
     private boolean mStop = false;
-
+    private boolean isStarted = false;
     /** ソース&命令表示用テキストビュー */
     private TextView textView1, textView2;
     /** 進行度用テキストビュー */
     private TextView barTV;
-    /** スタック用テキストビュー */
-    static TextView stackView0, stackView1;
     /** 現在地の緯度経度 */
     private LatLng nowLatLng;
     /** プログレスバー */
@@ -121,8 +117,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         textView2 = (TextView) findViewById(R.id.textView2);
         barTV = (TextView) findViewById(R.id.barTextView);
         barTV.setText("0 /" + d.taskList.length);
-        stackView0 = (TextView) findViewById(R.id.stack0);
-        stackView1 = (TextView) findViewById(R.id.stack1);
 
         // プログレスバーを用意
         progressBar = (ProgressBar)findViewById(R.id.progressBar);
@@ -146,13 +140,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 // startボタンが押されたとき
                 if (isChecked) {
-                    LatLng goalLocation = new LatLng(nowLatLng.latitude + latDiff,
-                            nowLatLng.longitude + lonDiff);
-                    d.setParamList(nowLatLng,goalLocation);
-                    upDate();
-                    mStart = true;
-                    mStop = false;
-                    soundPool.play(sound, 0.5f, 0.5f, 0, 0, 1);
+                    if(!isStarted) {
+                        setup();
+                        soundPool.play(sound, 0.5f, 0.5f, 0, 0, 1);
+                        isStarted = true;
+                    }else{
+                        mStop = false;
+                        mStart = true;
+                    }
                 } else {
                     mStop = true;
                     mStart = false;
@@ -168,6 +163,42 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if(mStart) action();
             }
         });
+    }
+
+    LatLng startLatLng;
+    void setup(){
+        AlertDialog.Builder alertDialogS = new AlertDialog.Builder(this);
+        alertDialogS.setTitle("スタート地点取得");
+        alertDialogS.setMessage("スタート地点を取得します。スタート地点に立ったらOKボタンを押してください。");
+        alertDialogS.setCancelable(false);
+        alertDialogS.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                startLatLng = nowLatLng;
+                dialogInterface.dismiss();
+                setGoal();
+            }
+        });
+        alertDialogS.show();
+
+        mStart = true;
+        mStop = false;
+    }
+
+    public void setGoal(){
+        AlertDialog.Builder alertDialogG = new AlertDialog.Builder(this);
+        alertDialogG.setTitle("ゴール地点取得");
+        alertDialogG.setMessage("ゴール地点を取得します。ゴール地点に立ったらOKボタンを押してください。");
+        alertDialogG.setCancelable(false);
+        alertDialogG.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                d.setParamList(startLatLng,nowLatLng);
+                dialogInterface.dismiss();
+                upDate();
+            }
+        });
+        alertDialogG.show();
     }
 
     @Override
@@ -305,7 +336,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-
     /**
      * 表示のアップデート
      */
@@ -315,6 +345,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         drawMemory();
         progressBar.setProgress(d.taskCursor + 1);
         barTV.setText(d.taskCursor + 1 + "/" + d.taskList.length);
+
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+        alertDialog.setTitle("処理の説明");
+        alertDialog.setMessage(d.getNote());
+        alertDialog.setCancelable(false);
+        alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.dismiss();
+            }
+        });
+        alertDialog.show();
     }
 
     /**
@@ -345,7 +387,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             PolygonOptions rect = new PolygonOptions()
                     .add(sLL0,sLL1,gLL0,gLL1)
-                    .strokeWidth(4);
+                    .strokeWidth(1);
 
             //出現している
             if(param.isAppeared == true){
@@ -356,16 +398,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     rect.fillColor(0x600000ff);
                 MarkerOptions marker = new MarkerOptions()
                         .position(param.getLocate());
-                if(param.getPointer() != "")
-                    marker.title(key).snippet(param.getPointer() + " のアドレス");
+
+                if(param.type == paramType.function)
+                    marker.title(key + "(関数)");
                 else {
-                    if (param.getNumber() == param.NONE)
-                        marker.title(key);
-                    else if (param.getNumber() == param.NOPARAM)
-                        marker.title(key + "(関数)");
-                    else
+                    if(param.getValue().equals("none"))
                         marker.title(key)
-                                .snippet(Integer.toString(param.getNumber()));
+                                .snippet(param.getValue());
+                    else
+                        marker.title(key);
                 }
                 mMap.addMarker(marker);
             }
@@ -377,9 +418,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-
     //このメソッドをアプリのメインクラスに実装
-//各処理において、現在のタスクを出力
+    // 各処理において、現在のタスクを出力
     public boolean function(final dataUtil d) {
         Log.d("debug", "function");
         command command = d.getTask().getCommand();
@@ -394,7 +434,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 d.substitude_c();
                 break;
             case get:
-                d.get_c();
+                d.get_c(this);
                 break;
             case input:
                 inputNum();
@@ -418,7 +458,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 alertDialog0.show();
                 break;
             case add:
-                d.add_c();
+                d.add_c(this);
                 break;
             case exit:
                 //TODO ここにコンソール出力処理
@@ -446,6 +486,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
      * 入力受け付けメソッド
      */
     private void inputNum() {
+        // Context引き渡し用変数
+        final Activity activity = this;
         LayoutInflater inflater = LayoutInflater.from(this);
         final View view = inflater.inflate(R.layout.dialog, null);
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
@@ -458,9 +500,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 EditText editText = (EditText)view.findViewById(R.id.editText);
-                String strNum = editText.getText().toString();
-                d.input_c(strNum);
-                dialogInterface.dismiss();
+                if(editText.getText().toString().equals(""))
+                    d.input_c(activity,"0");
+                else{
+                    String strNum = editText.getText().toString();
+                    d.input_c(activity, strNum);
+                    dialogInterface.dismiss();
+                }
             }
         });
 

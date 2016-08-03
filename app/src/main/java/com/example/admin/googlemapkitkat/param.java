@@ -9,13 +9,12 @@ import com.google.android.gms.maps.model.LatLng;
  *
  */
 public class param {
-	final static int NOPARAM = Integer.MAX_VALUE;
-	final static int NONE = Integer.MIN_VALUE;
-
 	/** 変数名 */
 	private String name;
+	/** 変数のタイプ */
+	paramType type;
 	/** 実際の変数の値 */
-	private int number;
+	private String value;
 	/** 変数のマップ上の座標 */
 	private LatLng locate;
 	/** ポインタの場合、参照先を入れる */
@@ -28,20 +27,22 @@ public class param {
 	 * 通常の変数用
 	 *
 	 * @param pn
-	 * @param param
+	 * @param value
 	 * @param ll
 	 * @param ia
 	 */
-	param(String pn, int param, LatLng ll, boolean ia) {
+	param(String pn, paramType type,String value, LatLng ll, boolean ia) {
 		name = pn;
-		number = param;
+		this.type = type;
+		this.value = value;
 		locate = ll;
 		isAppeared = ia;
 		pointer = "";
 	}
-	param(String pn, int param, LatLng ll, boolean ia , String p) {
+	param(String pn,paramType type,String value, LatLng ll, boolean ia , String p) {
 		name = pn;
-		number = param;
+		this.type = type;
+		this.value = value;
 		locate = ll;
 		isAppeared = ia;
 		pointer = p;
@@ -53,8 +54,8 @@ public class param {
 	public LatLng getLocate() {return locate;}
 	public void setLocate(LatLng locate) {	this.locate = locate;}
 
-	public int getNumber() {	return number;}
-	public void setNumber(int number) {	this.number = number;}
+	public String getValue() {	return value;}
+	public void setValue(String value) {	this.value = value;}
 
 	public String getPointer() {return pointer;	}
 	public void setPointer(String pointer) {	this.pointer = pointer;}
@@ -63,7 +64,8 @@ public class param {
 	public String toString() {
 		return "param{" +
 				"name='" + name + '\'' +
-				", number=" + number +
+				"type="+ type + '\'' +
+				", value=" + value +
 				", locate=" + locate +
 				", pointer='" + pointer + '\'' +
 				", isAppeared=" + isAppeared +

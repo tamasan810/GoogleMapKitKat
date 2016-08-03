@@ -14,7 +14,6 @@
     <string name="source_view">ここにソースをすべて表示する</string>
     <string name="next_button">NEXT</string>
     <string name="bar">0/0</string>
-    <string name="stack">スタック</string>
 
     <dimen name="activity_horizontal_margin">3dp</dimen>
 </resources>
