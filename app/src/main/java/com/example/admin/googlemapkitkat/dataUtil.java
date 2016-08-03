@@ -1,6 +1,7 @@
 package com.example.admin.googlemapkitkat;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.util.Log;
 import android.view.Gravity;
 import android.widget.FrameLayout;
@@ -236,6 +237,11 @@ public class dataUtil {
 		notes[49] = "正常終了！";
 	}
 
+	public void init(){
+		taskCursor = 0;
+		progCursor = 0;
+	}
+
 	/**
 	 * 次の命令へ(条件が合えば次のコードへ)
 	 */
@@ -322,7 +328,8 @@ public class dataUtil {
 			frameLayout0 = (FrameLayout) activity.findViewById(R.id.frame0) ;
 			stackText0 = new TextView(activity);
 			stackText0.setText(str);
-			stackText0.setTextSize(25f);
+			stackText0.setTextSize(18f);
+			stackText0.setTextColor(Color.parseColor("#0000FF"));
 			stackText0.setGravity(Gravity.CENTER);
 			stackText0.setBackground(activity.getResources().getDrawable(R.drawable.frame_style));
 			frameLayout0.addView(stackText0);
@@ -330,7 +337,8 @@ public class dataUtil {
 			frameLayout1 = (FrameLayout) activity.findViewById(R.id.frame1);
 			stackText1 = new TextView(activity);
 			stackText1.setText(str);
-			stackText1.setTextSize(25f);
+			stackText1.setTextSize(18f);
+			stackText0.setTextColor(Color.parseColor("#0000FF"));
 			stackText1.setGravity(Gravity.CENTER);
 			stackText1.setBackground(activity.getResources().getDrawable(R.drawable.frame_style));
 			frameLayout1.addView(stackText1);

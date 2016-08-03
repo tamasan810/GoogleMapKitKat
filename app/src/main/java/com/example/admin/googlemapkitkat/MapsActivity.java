@@ -4,11 +4,9 @@ package com.example.admin.googlemapkitkat;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Location;
 import android.media.AudioManager;
 import android.media.SoundPool;
@@ -49,7 +47,6 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolygonOptions;
-import com.google.android.gms.vision.text.Text;
 
 // FragmentActivity is included in ActionBarActivity
 // FragmentActivity, AppCompatActivity
@@ -83,7 +80,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private ProgressBar progressBar;
     /** 効果音*/
     private SoundPool soundPool;
-    private int sound;
+    private int[] sounds;
 
     dataUtil d = new dataUtil();
 
@@ -123,11 +120,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // 最大値はtaskListの長さ
         progressBar.setMax(d.taskList.length);
 
-        // SoundPoolのインスタンス作成
-        soundPool = new SoundPool(1, AudioManager.STREAM_MUSIC, 0);
-        // 効果音をロードしておく
-        // 引数はContext、リソースID、優先度
-        sound = soundPool.load(this,R.raw.mdecision, 1);
+        // 効果音の用意
+        setSound();
 
         // START/STOPボタンを用意
         ToggleButton tb = (ToggleButton) findViewById(R.id.toggleButton);
@@ -142,7 +136,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (isChecked) {
                     if(!isStarted) {
                         setup();
-                        soundPool.play(sound, 0.5f, 0.5f, 0, 0, 1);
+                        soundPool.play(sounds[0], 0.5f, 0.5f, 0, 0, 1);
                         isStarted = true;
                     }else{
                         mStop = false;
@@ -199,6 +193,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
         alertDialogG.show();
+    }
+
+    public void setSound() {
+        // SoundPoolのインスタンス作成
+        soundPool = new SoundPool(1, AudioManager.STREAM_MUSIC, 0);
+
+        // 効果音をロードしておく
+        // 引数はContext、リソースID、優先度
+        sounds = new int[2];
+        sounds[0] = soundPool.load(this,R.raw.mdecision, 1);
+        sounds[1] = soundPool.load(this, R.raw.dialog, 1);
     }
 
     @Override
@@ -333,6 +338,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if(function(d)){
             upDate();
             Log.d("debug","現在地" + nowLatLng.toString());
+        }else{
+            d.init();
+            isStarted = false;
         }
     }
 
@@ -356,6 +364,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 dialogInterface.dismiss();
             }
         });
+        soundPool.play(sounds[1], 0.5f, 0.5f, 0, 0, 1);
         alertDialog.show();
     }
 
@@ -461,19 +470,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 d.add_c(this);
                 break;
             case exit:
-                //TODO ここにコンソール出力処理
-                AlertDialog.Builder alertDialog1 = new AlertDialog.Builder(this);
-                alertDialog1.setTitle("output");
-                alertDialog1.setMessage(d.getOutputStr());
-                alertDialog1.setCancelable(false);
-                alertDialog1.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        dialogInterface.dismiss();
-                    }
-                });
-                alertDialog1.show();
-                break;
+                return false;
             default:
                 break;
         }
@@ -509,6 +506,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             }
         });
+
 
         alertDialog.show();
     }

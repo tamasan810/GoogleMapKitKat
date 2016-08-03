@@ -57,8 +57,8 @@
         android:layout_alignParentEnd="true" />
 
     <ImageView
-        android:layout_width="30dp"
-        android:layout_height="30dp"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
         android:src="@drawable/runner"
         android:layout_toLeftOf="@+id/progressBar"
         android:layout_alignParentBottom="true"
@@ -78,7 +78,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/bar"
-        android:textSize="10dp"
+        android:textSize="18dp"
         android:id="@+id/barTextView"
         android:textColor="#FF0000"
         android:layout_below="@+id/progressBar"
