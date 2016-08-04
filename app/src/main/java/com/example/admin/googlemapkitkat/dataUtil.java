@@ -76,7 +76,6 @@ public class dataUtil {
 		}
 	}
 
-
 	/**
 	 * 変数リストを用意
 	 */
@@ -91,8 +90,12 @@ public class dataUtil {
 			memNumber = Integer.parseInt(br.readLine());
 			LatLng[]center = new LatLng[memNumber];
 
-			double imargin = (goal.latitude - start.latitude)/memNumber;//メモリの緯度の間隔
-			double kmargin = (goal.longitude - start.longitude)/memNumber;//メモリの経度の間隔
+//			double imargin = (goal.latitude - start.latitude)/memNumber;//メモリの緯度の間隔
+//			double kmargin = (goal.longitude - start.longitude)/memNumber;//メモリの経度の間隔
+
+			// 発表用
+			double imargin = 0.002861023f/memNumber;
+			double kmargin = 0;
 
 			this.r = imargin > kmargin ? imargin*0.5f : kmargin*0.5f;
 			this.r = r < 0?-r:r;
@@ -368,17 +371,18 @@ public class dataUtil {
 	}
 
 	public boolean isCorrectLocation(LatLng currentLocate){
-		LatLng correctLocate = getLocate();
-		Log.d("debug",getTask().getTarget() + ": correct;" + correctLocate.toString());
-		Log.d("debug","r:" + Double.toString(r));
-		if(currentLocate.latitude <= correctLocate.latitude + this.r &&
-				currentLocate.latitude >= correctLocate.latitude - this.r &&
-				currentLocate.longitude <= correctLocate.longitude + this.r &&
-				currentLocate.longitude >= correctLocate.longitude - this.r
-				){
-			return true;
-		}
-		return false;
+		return true;
+//		LatLng correctLocate = getLocate();
+//		Log.d("debug",getTask().getTarget() + ": correct;" + correctLocate.toString());
+//		Log.d("debug","r:" + Double.toString(r));
+//		if(currentLocate.latitude <= correctLocate.latitude + this.r &&
+//				currentLocate.latitude >= correctLocate.latitude - this.r &&
+//				currentLocate.longitude <= correctLocate.longitude + this.r &&
+//				currentLocate.longitude >= correctLocate.longitude - this.r
+//				){
+//			return true;
+//		}
+//		return false;
 	}
 
 	/**

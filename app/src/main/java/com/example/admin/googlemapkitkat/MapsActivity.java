@@ -116,7 +116,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onClick(View view) {
                 setup();
                 soundPool.play(sounds[0], 0.5f, 0.5f, 0, 0, 1);
-                mStart = false;
+                mStart = true;
                 startButton.setEnabled(false);
                 nextButton.setEnabled(true);
             }
@@ -447,6 +447,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         textView2.setText("");
         barTV.setText("0 / 0");
         progressBar.setProgress(0);
+        mMap.clear();
         selectLevel();
     }
 
@@ -500,7 +501,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         d.next();
         return true;
     }
-
 
     /**
      * 入力受け付けメソッド
@@ -556,14 +556,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             // SourceActivityを呼び出すIntentを生成
             Intent intent = new Intent(this, SourceActivity.class);
             // textというパラメータを設定
-            Log.d("debug", d.getSource());
             intent.putExtra("text", d.getSource());
             // startActivityでソースコードを呼び出す
             startActivity(intent);
         }
         // 選択ダイアログからやり直し
         else if(itemId == R.id.restart) {
-            finish();
+            if(mStart) finish();
         }
         return super.onOptionsItemSelected(item);
     }
