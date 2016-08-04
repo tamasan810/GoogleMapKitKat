@@ -362,6 +362,21 @@ public class dataUtil {
 	}
 
 	/**
+	 * スタックをリセット
+	 */
+	public void resetStack() {
+		if(frameLayout1 != null) {
+			frameLayout0.removeAllViews();
+			frameLayout1.removeAllViews();
+			stackText0 = null;
+			stackText1 = null;
+		} else if(frameLayout0 != null) {
+			frameLayout0.removeAllViews();
+			stackText0 = null;
+		}
+	}
+
+	/**
 	 * 現在向かうべき場所を返す
 	 *
 	 * @return

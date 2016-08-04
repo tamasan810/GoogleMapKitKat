@@ -441,6 +441,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     // 終了(リスタート)時の処理
     public void finish() {
         d.init();
+        d.resetStack();
         startButton.setEnabled(true);
         nextButton.setEnabled(false);
         textView1.setText(R.string.source);
