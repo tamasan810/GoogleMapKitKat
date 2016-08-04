@@ -1,16 +1,15 @@
 <resources>
     <string name="app_name">CgenGO</string>
     <string name="title_activity_maps">CgenGO</string>
-    <string name="text_on">Stop</string>
-    <string name="text_off">Start</string>
+    <string name="start_button">Start</string>
     <string name="eltime">経過時間</string>
     <string name="chronometer_format">%s</string>
     <string name="distance">移動距離</string>
     <string name="latitude">経度</string>
     <string name="longtitude">緯度</string>
-    <string name="source">Cのソース</string>
-    <string name="order">命令</string>
+    <string name="source">STARTボタンを押すと始まります</string>
     <string name="menu_call_source">ソースの表示</string>
+    <string name="restart">初めから</string>
     <string name="source_view">ここにソースをすべて表示する</string>
     <string name="next_button">NEXT</string>
     <string name="bar">0/0</string>

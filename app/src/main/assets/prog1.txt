@@ -1,0 +1,156 @@
+prog1,50
+&&
+display,main関数開始,t
+initialize,aを初期化します,a,f
+input,aに代入する値を入力,a,f
+move,aに移動する,a,f
+substitude,aに値を代入,a,f
+initialize,bを初期化する,b,f
+input,bに代入する値を入力,b,f
+move,bに移動する,b,f
+substitude,bに値を代入,b,t
+initialize,sum関数呼び出し,sum,t
+move,sum関数に移動,sum,f);
+initialize,main addressを初期化,main address,f
+move,mainに移動,main,f
+get,mainのアドレス取得成功,main address,f
+move,main addressに移動,main address,f
+substitude,mainのリターンアドレス代入,main address,f
+display,引数を初期化します,f
+initialize,*sumを初期化,*sum, f
+move,aに移動,a,f
+get, aのアドレスを得ました,*sum,f
+move,*sumに移動,*sum,f
+substitude,aのアドレスを代入,*sum,f
+initialize, b_を初期化, b_, f
+move, bの値を取得するためbに移動, b, f
+get, bから値を取得, b, f
+move,b_に移動,b_,f
+substitude, b_に値を代入, b_, t
+display,演算のために*sum,b_を取得します, f
+display, まず*sumの値を取得します, f
+move, *sumに移動, *sum, f
+move, *sumの参照する変数aに移動, a, f
+get, aから値を取得, a, f
+display, 次にb_を取得します, f
+move, b_に移動, b_, f
+get, b_の値を取得, b_, f
+add, *sum + b_を実行, f
+display, *sumに計算結果を代入します, f
+move, *sumに移動, *sum, f
+move, *sumの参照する変数aに移動, a, f
+substitude, aに値を代入, a, t
+move, sumが終了。mainに移動, main, t
+display, a,bの出力処理を行います, f
+move, aに移動, a, f
+get, aの値を取得, a, f
+output, aを出力, a, t
+move, bに移動, b, f
+get, bの値を取得, b, f
+output, bを出力, b, t
+display, 最後にreturn 0をする, t
+exit, 正常終了！, t
+&&
+main関数を開始します。
+int型の変数aを初期化します。
+aに代入する値を入力し、入力バッファに格納します。
+入力バッファの値を代入するためにaに移動します。
+aに入力バッファの値を代入します。
+int型の変数bを初期化します。
+bに代入する値を入力し、入力バッファに格納します。
+入力バッファの値を代入するために、bに移動します。
+bに入力バッファの値を代入します。
+void sum(int *sum,int b_)関数を呼び出します。\n渡す引数は &a,b です。
+sum関数のメモリ領域に移動します。
+sum実行後のリターンアドレス（ここではmain address）を初期化します
+sum実行後のリターンアドレスであるmainのアドレスに移動します。
+sum実行後のリターンアドレスを取得しました。
+取得したアドレスを代入するために、main addressに移動します。
+main addressにmainのリターンアドレスを代入します。
+これからsum関数の引数(int *sum,int b_)を初期化していきます。
+引数のint型のポインタである、*sumを初期化します。\n*sumの参照先はaです。
+*sumの参照先はaなので、aのアドレスを得るためにaに移動します。
+aのアドレスを取得します。
+aのアドレスを代入するために、*sumに移動します。
+aのアドレスを*sumに代入します。
+引数であるint型の変数b_を初期化します。
+bの値を得るためにbに移動します。(b_はbの値渡し)
+bの値を取得します。
+bの値を代入するために、b_に移動します。
+bの値をb_に代入します。
+演算をするために、*sumとb_の値を取得していきます。
+最初に、*sumの値を取得していきます。
+*sumに移動します。
+*sumにはaのアドレスが格納されているので、*sumの参照する変数aに移動します。
+aの値を取得します。
+次に、b_の値を取得していきます。
+b_に移動します。
+b_の値を取得します。
+*sum + b_を実行します
+*sumに*sum + b_の計算結果を代入していきます。
+*sumに移動します。
+*sumにはaのアドレスが格納されているので、*sumの参照する変数aに移動します。
+aに*sum + b_の計算結果を代入します。
+sum関数が終了したので、main関数に戻ります。
+これからint型の変数a, bの出力処理を行います。
+aに移動します。
+aの値を取得します。
+aの値を出力します。
+bに移動します。
+bの値を取得します。
+bの値を出力します。
+最後にreturn 0をします。
+正常終了！
+&&
+7
+main, function,none,t
+a, param,none, f
+b, param,none, f
+sum, function,none,f
+main address,pointer,none,f,main
+*sum, pointer,none, f,a
+b_, param, none, f
+&&
+10
+int main(void){
+	int a = ?,b = ?;
+	sum(&a,b);
+void sum(int *sum,int b){
+	*sum = *sum + b;
+	}
+printf(\"a = %d\",a);
+printf(\"b = %d\",b);
+return 0;
+}
+&&
+11
+void sum(int *sum,int b){
+	*sum = *sum + b;
+	}
+
+int main(void){
+	int a = ?,b = ?;
+	sum(&a,b);
+	printf(\"a = %d\",a);
+	printf(\"b = %d\",b);
+	return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

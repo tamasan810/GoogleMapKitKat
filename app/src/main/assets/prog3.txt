@@ -1,0 +1,80 @@
+prog3,26
+&&
+display,main関数開始,t
+initialize,aを初期化します,a,f
+input,aに代入する値を入力,a,f
+move,aに移動する,a,f
+substitude,aに値を代入,a,t
+initialize,*aを初期化,*a, f
+move,aに移動,a,f
+get, aのアドレスを得ました,*a,f
+move,*aに移動,*a,f
+substitude,aのアドレスを代入,*a,t
+display,*aの値を出力します。,f
+move, *aに移動, *a, f
+move, *aの参照する変数aに移動, a, f
+get, aの値を取得, a, f
+output, aを出力, a, t
+display,"aに別の値を代入します。",f
+input,aに代入する値を入力,a,f
+move,aに移動する,a,f
+substitude,aに値を代入,a,t
+display,"*aの値を出力します。",f
+move, *aに移動, *a, f
+move, *aの参照する変数aに移動, a, f
+get, aの値を取得, a, f
+output, aを出力, a, t
+display, 最後にreturn 0をする, t
+exit, 正常終了！, t
+&&
+main関数を開始します。
+int型の変数aを初期化します。
+aに代入する値を入力し、入力バッファに格納します。
+入力バッファの値を代入するためにaに移動します。
+aに入力バッファの値を代入します
+int型のポインタである、*aを初期化します。\n*aの参照先はaです。
+*aの参照先はaなので、aのアドレスを得るためにaに移動します。
+aのアドレスを取得します。
+aのアドレスを代入するために、*aに移動します。
+aのアドレスを*aに代入します。
+これからint型のポインタ*aの出力処理を行います。
+*aに移動します。
+*aにはaのアドレスが格納されているので、*aの参照する変数aに移動します
+aの値を取得します。
+aの値を出力します。
+次にaに別の値を代入していきます。
+aに代入する値を入力します。
+aに移動します。
+aに入力バッファの値を代入します。
+これからint型のポインタ*aの出力処理を行います。
+*aに移動します。
+*aにはaのアドレスが格納されているので、*aの参照する変数aに移動します
+aの値を取得します。
+aの値を出力します。
+最後にreturn 0をします。
+正常終了！
+&&
+3
+main,function,none,t
+a,param,none,f
+*a,pointer,none,f,a
+&&
+8
+int main(){
+	int a = ?;
+	int *a = &a;
+	printf(%d,*a);
+	a = ?;
+	printf(%d,*a);
+	return 0;
+}
+&&
+8
+int main(){
+	int a = ?;
+	int *a = &a;
+	printf(%d,*a);
+	a = ?;
+	printf(%d,*a);
+	return 0;
+}

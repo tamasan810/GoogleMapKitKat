@@ -5,66 +5,89 @@
     android:paddingTop="@dimen/activity_horizontal_margin"
     tools:context="com.example.admin.googlemapkitkat.MapsActivity">
 
-    <ToggleButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textOn="@string/text_on"
-        android:textOff="@string/text_off"
-        android:id="@+id/toggleButton"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"/>
-
+    <!-- ソース表示 -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toRightOf="@+id/toggleButton"
         android:text="@string/source"
         android:textSize="20sp"
         android:id="@+id/textView1"/>
 
+    <!-- 命令表示 -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toRightOf="@+id/toggleButton"
         android:layout_below="@+id/textView1"
-        android:text="@string/order"
         android:textSize="20sp"
         android:id="@+id/textView2"/>
 
+    <!-- GoogleMap -->
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/toggleButton"
+        android:layout_below="@+id/textView2"
         android:layout_marginTop="3dp"
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         tools:context="com.example.admin.googlemapkitkat.MapsActivity" />
 
+    <!-- STARTボタン -->
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/startButton"
+        android:text="@string/start_button"
+        android:layout_alignParentBottom="true" />
+
+    <!-- NEXTボタン -->
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/nextButton"
         android:text="@string/next_button"
-        android:layout_below="@+id/toggleButton"/>
+        android:layout_toRightOf="@+id/startButton"
+        android:layout_alignParentBottom="true" />
 
+    <!-- スタック1 -->
+    <FrameLayout
+        android:layout_width="130dp"
+        android:layout_height="50dp"
+        android:id="@+id/frame1"
+        android:layout_above="@+id/frame0"
+        android:layout_alignParentEnd="true"
+        android:layout_marginRight="10dp"/>
+
+    <!-- スタック0 -->
     <FrameLayout
         android:layout_width="130dp"
         android:layout_height="50dp"
         android:id="@+id/frame0"
         android:layout_above="@+id/imageView"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignParentEnd="true"
+        android:layout_marginRight="10dp"/>
 
+    <!-- 進行度 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/bar"
+        android:textSize="18dp"
+        android:id="@+id/barTextView"
+        android:textColor="#FF0000"
+        android:layout_below="@+id/frame0"
+        android:layout_alignEnd="@+id/frame0" />
+
+    <!-- 画像 -->
     <ImageView
         android:layout_width="35dp"
         android:layout_height="35dp"
         android:src="@drawable/runner"
         android:layout_toLeftOf="@+id/progressBar"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="30dp"
         android:id="@+id/imageView" />
 
+    <!-- 進行度を表すバー -->
     <ProgressBar
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="130dp"
@@ -73,23 +96,6 @@
         android:layout_alignBottom="@+id/imageView"
         android:layout_alignParentEnd="true"
         android:layout_marginRight="10dp"/>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/bar"
-        android:textSize="18dp"
-        android:id="@+id/barTextView"
-        android:textColor="#FF0000"
-        android:layout_below="@+id/progressBar"
-        android:layout_alignEnd="@+id/progressBar" />
-
-    <FrameLayout
-        android:layout_width="130dp"
-        android:layout_height="50dp"
-        android:id="@+id/frame1"
-        android:layout_above="@+id/frame0"
-        android:layout_alignParentEnd="true" />
 
 </RelativeLayout>
 

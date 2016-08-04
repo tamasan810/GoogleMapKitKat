@@ -11,4 +11,11 @@
         android:title="@string/menu_call_source"
         app:showAsAction="ifRoom" />
 
+    <!-- リスタート -->
+    <item
+        android:id="@+id/restart"
+        android:orderInCategory="101"
+        android:title="@string/restart"
+        app:showAsAction="ifRoom" />
+
 </menu>

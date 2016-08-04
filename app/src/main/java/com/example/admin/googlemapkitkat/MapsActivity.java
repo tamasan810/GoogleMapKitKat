@@ -1,7 +1,5 @@
 package com.example.admin.googlemapkitkat;
 
-// 2016/8/2/11:02
-
 import android.Manifest;
 import android.app.Activity;
 import android.content.DialogInterface;
@@ -24,12 +22,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -68,8 +64,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
     private boolean mStart = false;
-    private boolean mStop = false;
-    private boolean isStarted = false;
+    /** START, NEXTボタン */
+    private Button startButton, nextButton;
     /** ソース&命令表示用テキストビュー */
     private TextView textView1, textView2;
     /** 進行度用テキストビュー */
@@ -81,6 +77,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     /** 効果音*/
     private SoundPool soundPool;
     private int[] sounds;
+    private String filepath;
 
     dataUtil d = new dataUtil();
 
@@ -109,54 +106,49 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // 現在地を初期化
         nowLatLng = new LatLng(0, 0);
 
-        // テキストビューを用意
-        textView1 = (TextView) findViewById(R.id.textView1);
-        textView2 = (TextView) findViewById(R.id.textView2);
-        barTV = (TextView) findViewById(R.id.barTextView);
-        barTV.setText("0 /" + d.taskList.length);
-
-        // プログレスバーを用意
-        progressBar = (ProgressBar)findViewById(R.id.progressBar);
-        // 最大値はtaskListの長さ
-        progressBar.setMax(d.taskList.length);
-
         // 効果音の用意
         setSound();
 
-        // START/STOPボタンを用意
-        ToggleButton tb = (ToggleButton) findViewById(R.id.toggleButton);
-        // 起動時はボタンがオフ(START)の状態
-        tb.setChecked(false);
-
-        // ToggleButtonのCheckが変更したタイミングで呼び出されるリスナー
-        tb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        // STARTボタンを用意
+        startButton = (Button) findViewById(R.id.startButton);
+        startButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                // startボタンが押されたとき
-                if (isChecked) {
-                    if(!isStarted) {
-                        setup();
-                        soundPool.play(sounds[0], 0.5f, 0.5f, 0, 0, 1);
-                        isStarted = true;
-                    }else{
-                        mStop = false;
-                        mStart = true;
-                    }
-                } else {
-                    mStop = true;
-                    mStart = false;
-                }
+            public void onClick(View view) {
+                setup();
+                soundPool.play(sounds[0], 0.5f, 0.5f, 0, 0, 1);
+                mStart = false;
+                startButton.setEnabled(false);
+                nextButton.setEnabled(true);
             }
         });
 
         // NEXTボタンを用意
-        Button button = (Button) findViewById(R.id.nextButton);
-        button.setOnClickListener(new View.OnClickListener() {
+        nextButton = (Button) findViewById(R.id.nextButton);
+        nextButton.setEnabled(false);
+        nextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(mStart) action();
+                action();
             }
         });
+
+        final String[] items = {"初級", "中級"};
+        new AlertDialog.Builder(this)
+                .setTitle("選択ダイアログ")
+                .setItems(items, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if(which == 0) {
+                            filepath = "prog3.txt";
+
+                        }else{
+                            filepath = "prog1.txt";
+                        }
+                    }
+                })
+                .show();
+
+
     }
 
     LatLng startLatLng;
@@ -174,12 +166,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
         alertDialogS.show();
-
-        mStart = true;
-        mStop = false;
     }
 
     public void setGoal(){
+        final Activity activity = this;
         AlertDialog.Builder alertDialogG = new AlertDialog.Builder(this);
         alertDialogG.setTitle("ゴール地点取得");
         alertDialogG.setMessage("ゴール地点を取得します。ゴール地点に立ったらOKボタンを押してください。");
@@ -187,7 +177,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         alertDialogG.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                d.setParamList(startLatLng,nowLatLng);
+                d.readScript(activity, filepath,startLatLng,nowLatLng);
+                // テキストビューを用意
+                textView1 = (TextView) findViewById(R.id.textView1);
+                textView2 = (TextView) findViewById(R.id.textView2);
+                barTV = (TextView) findViewById(R.id.barTextView);
+                barTV.setText("0 /" + d.taskList.length);
+
+                // プログレスバーを用意
+                progressBar = (ProgressBar)findViewById(R.id.progressBar);
+                // 最大値はtaskListの長さ
+                progressBar.setMax(d.taskList.length);
                 dialogInterface.dismiss();
                 upDate();
             }
@@ -195,15 +195,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         alertDialogG.show();
     }
 
+    /**
+     * 効果音を用意する
+     */
     public void setSound() {
         // SoundPoolのインスタンス作成
         soundPool = new SoundPool(1, AudioManager.STREAM_MUSIC, 0);
 
         // 効果音をロードしておく
         // 引数はContext、リソースID、優先度
-        sounds = new int[2];
-        sounds[0] = soundPool.load(this,R.raw.mdecision, 1);
+        sounds = new int[3];
+        sounds[0] = soundPool.load(this,R.raw.start, 1);
         sounds[1] = soundPool.load(this, R.raw.dialog, 1);
+        sounds[2] = soundPool.load(this, R.raw.finish, 1);
     }
 
     @Override
@@ -308,6 +312,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onLocationChanged(final Location location) {
         Log.d("debug", "onLocationChanged");
+        if(mStart) return;
+
         // 現在地の緯度経度を更新
         nowLatLng = new LatLng(location.getLatitude(), location.getLongitude());
 
@@ -339,8 +345,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             upDate();
             Log.d("debug","現在地" + nowLatLng.toString());
         }else{
-            d.init();
-            isStarted = false;
+            soundPool.play(sounds[2], 0.5f, 0.5f, 0, 0, 1);
+            finish();
         }
     }
 
@@ -427,6 +433,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+    // 終了(リスタート)時の処理
+    public void finish() {
+        d.init();
+        startButton.setEnabled(true);
+        nextButton.setEnabled(false);
+        textView1.setText(R.string.source);
+        textView2.setText("");
+        barTV.setText("0 /" + d.taskList.length);
+        progressBar.setProgress(0);
+    }
+
     //このメソッドをアプリのメインクラスに実装
     // 各処理において、現在のタスクを出力
     public boolean function(final dataUtil d) {
@@ -486,7 +503,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Context引き渡し用変数
         final Activity activity = this;
         LayoutInflater inflater = LayoutInflater.from(this);
-        final View view = inflater.inflate(R.layout.dialog, null);
+        final View view = inflater.inflate(R.layout.input_dialog, null);
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
         alertDialog.setTitle("入力受け付けダイアログ");
         alertDialog.setMessage(d.getTask().getText());
@@ -537,6 +554,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             intent.putExtra("text", d.getCode());
             // startActivityでソースコードを呼び出す
             startActivity(intent);
+        } else if(itemId == R.id.restart) {
+            finish();
         }
         return super.onOptionsItemSelected(item);
     }
