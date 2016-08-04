@@ -198,6 +198,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         final String[] items = {"初級", "中級"};
         new AlertDialog.Builder(this)
                 .setTitle("選択ダイアログ")
+                .setCancelable(true)
                 .setItems(items, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -322,7 +323,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // アプリを起動すると現在地に地図の中心を移動する
         if(mSetUp) {
             CameraPosition cameraPosition = new CameraPosition.Builder()
-                    .target(nowLatLng).zoom(17f).bearing(0).build();
+                    .target(nowLatLng).zoom(19f).bearing(0).build();
             // 地図の中心を取得した緯度、経度に動かす
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
             mSetUp = false;
@@ -528,7 +529,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             }
         });
-
 
         alertDialog.show();
     }
