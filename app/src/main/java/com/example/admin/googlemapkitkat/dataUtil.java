@@ -368,18 +368,17 @@ public class dataUtil {
 	}
 
 	public boolean isCorrectLocation(LatLng currentLocate){
-		return true;
-//		LatLng correctLocate = getLocate();
-//		Log.d("debug",getTask().getTarget() + ": correct;" + correctLocate.toString());
-//		Log.d("debug","r:" + Double.toString(r));
-//		if(currentLocate.latitude <= correctLocate.latitude + this.r &&
-//				currentLocate.latitude >= correctLocate.latitude - this.r &&
-//				currentLocate.longitude <= correctLocate.longitude + this.r &&
-//				currentLocate.longitude >= correctLocate.longitude - this.r
-//				){
-//			return true;
-//		}
-//		return false;
+		LatLng correctLocate = getLocate();
+		Log.d("debug",getTask().getTarget() + ": correct;" + correctLocate.toString());
+		Log.d("debug","r:" + Double.toString(r));
+		if(currentLocate.latitude <= correctLocate.latitude + this.r &&
+				currentLocate.latitude >= correctLocate.latitude - this.r &&
+				currentLocate.longitude <= correctLocate.longitude + this.r &&
+				currentLocate.longitude >= correctLocate.longitude - this.r
+				){
+			return true;
+		}
+		return false;
 	}
 
 	/**

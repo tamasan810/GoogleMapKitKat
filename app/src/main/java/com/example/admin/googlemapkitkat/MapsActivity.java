@@ -347,8 +347,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             upDate();
             Log.d("debug","現在地" + nowLatLng.toString());
         }else{
-            soundPool.play(sounds[2], 0.5f, 0.5f, 0, 0, 1);
-            finish();
+            if(d.getTask().getCommand() == command.exit) {
+                soundPool.play(sounds[2], 0.5f, 0.5f, 0, 0, 1);
+                finish();
+            }
         }
     }
 
