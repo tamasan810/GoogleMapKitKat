@@ -421,7 +421,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if(param.type == paramType.function)
                     marker.title(key + "(関数)");
                 else {
-                    if(param.getValue().equals("none"))
+                    if(!param.getValue().equals("none"))
                         marker.title(key)
                                 .snippet(param.getValue());
                     else
