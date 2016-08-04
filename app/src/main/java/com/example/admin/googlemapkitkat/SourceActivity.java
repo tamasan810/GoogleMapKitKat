@@ -1,6 +1,7 @@
 package com.example.admin.googlemapkitkat;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.TextView;
 
@@ -11,10 +12,11 @@ public class SourceActivity extends Activity {
         super.onCreate(savedinstanceState);
         setContentView(R.layout.activity_source);
 
-        dataUtil dataUtil = new dataUtil();
-
-        TextView textView = (TextView)findViewById(R.id.sTextView);
-        textView.setText(dataUtil.getSource());
-
+        // パラメータを取得
+        Intent intent = getIntent();
+        if(intent != null) {
+            TextView textView = (TextView)findViewById(R.id.sTextView);
+            textView.setText(intent.getStringExtra("text"));
+        }
     }
 }

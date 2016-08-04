@@ -36,6 +36,7 @@ public class dataUtil {
 
 	/** Cのプログラムリスト（処理順のためソースプログラムと違う） */
 	String[] progList;
+
 	/** プログラムリストのカーソル */
 	int progCursor = 0;
 
@@ -46,7 +47,7 @@ public class dataUtil {
 	HashMap<String, param> paramMap;
 
 	/** ソースプログラム（出力用） */
-	String source;
+	String source = "";
 
 	/** 計算,出力用のスタック */
 	Stack<String> stack;
@@ -327,7 +328,9 @@ public class dataUtil {
 			stackText0.setTextSize(18f);
 			stackText0.setTextColor(Color.parseColor("#0000FF"));
 			stackText0.setGravity(Gravity.CENTER);
+//			stackText0.setBackgroundColor(Color.argb(220, 255, 255, 255));
 			stackText0.setBackground(activity.getResources().getDrawable(R.drawable.frame_style));
+
 			frameLayout0.addView(stackText0);
 		} else {
 			frameLayout1 = (FrameLayout) activity.findViewById(R.id.frame1);
@@ -336,6 +339,7 @@ public class dataUtil {
 			stackText1.setTextSize(18f);
 			stackText1.setTextColor(Color.parseColor("#0000FF"));
 			stackText1.setGravity(Gravity.CENTER);
+//			stackText1.setBackgroundColor(Color.argb(220, 255, 255, 255));
 			stackText1.setBackground(activity.getResources().getDrawable(R.drawable.frame_style));
 			frameLayout1.addView(stackText1);
 		}

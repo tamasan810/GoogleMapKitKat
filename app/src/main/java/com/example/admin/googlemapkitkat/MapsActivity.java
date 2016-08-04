@@ -132,23 +132,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-        final String[] items = {"初級", "中級"};
-        new AlertDialog.Builder(this)
-                .setTitle("選択ダイアログ")
-                .setItems(items, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        if(which == 0) {
-                            filepath = "prog3.txt";
-
-                        }else{
-                            filepath = "prog1.txt";
-                        }
-                    }
-                })
-                .show();
-
-
+        selectLevel();
     }
 
     LatLng startLatLng;
@@ -208,6 +192,24 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         sounds[0] = soundPool.load(this,R.raw.start, 1);
         sounds[1] = soundPool.load(this, R.raw.dialog, 1);
         sounds[2] = soundPool.load(this, R.raw.finish, 1);
+    }
+
+    public void selectLevel() {
+        final String[] items = {"初級", "中級"};
+        new AlertDialog.Builder(this)
+                .setTitle("選択ダイアログ")
+                .setItems(items, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if(which == 0) {
+                            filepath = "prog3.txt";
+
+                        }else{
+                            filepath = "prog1.txt";
+                        }
+                    }
+                })
+                .show();
     }
 
     @Override
@@ -440,8 +442,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         nextButton.setEnabled(false);
         textView1.setText(R.string.source);
         textView2.setText("");
-        barTV.setText("0 /" + d.taskList.length);
+        barTV.setText("0 / 0");
         progressBar.setProgress(0);
+        selectLevel();
     }
 
     //このメソッドをアプリのメインクラスに実装
@@ -545,16 +548,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         Log.d("debug", "onOptionsItemSelected");
-        // 連携処理を実施
+        // ソース呼び出し
         int itemId = item.getItemId();
         if (itemId == R.id.action_source) {
             // SourceActivityを呼び出すIntentを生成
             Intent intent = new Intent(this, SourceActivity.class);
             // textというパラメータを設定
-            intent.putExtra("text", d.getCode());
+            Log.d("debug", d.getSource());
+            intent.putExtra("text", d.getSource());
             // startActivityでソースコードを呼び出す
             startActivity(intent);
-        } else if(itemId == R.id.restart) {
+        }
+        // 選択ダイアログからやり直し
+        else if(itemId == R.id.restart) {
             finish();
         }
         return super.onOptionsItemSelected(item);
